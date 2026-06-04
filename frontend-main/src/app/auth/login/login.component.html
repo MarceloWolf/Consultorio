@@ -1,0 +1,32 @@
+<div class="login-container">
+    <div class="image-section">
+      <h1>Sistema de Gestión</h1>
+      
+    </div>
+    <div class="form-section">
+      <img src="assets/wolf.png" alt="MEDICUS Logo" class="logo">
+      
+      <h3>¡Bienvenido!</h3>
+      
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="input-group">
+          <i class="fas fa-user icon"></i>
+          <input id="username" type="text" formControlName="username" placeholder="Usuario">
+        </div>
+        <div *ngIf="loginForm.get('username')?.invalid && loginForm.get('username')?.touched" class="error-message">
+          * El usuario es obligatorio
+        </div>
+        
+        <div class="input-group">
+          <i class="fas fa-lock icon"></i>
+          <input id="password" [attr.type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="Contraseña">
+          <i class="fa-solid" [ngClass]="showPassword ? 'fa-eye' : 'fa-eye-slash'" (click)="togglePasswordVisibility()"></i>
+        </div>
+      <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="error-message">
+        * La contraseña es obligatoria
+      </div>
+  
+        <button type="submit" [disabled]="loginForm.invalid">Ingresar</button>
+      </form>
+    </div>
+</div>

@@ -1,0 +1,34 @@
+.container-popUp{
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  height: 400px;
+  background-color: rgb(102, 168, 196);
+  border: 2px solid black;
+}
+
+h1{
+  text-align: center;
+}
+
+.update{
+  margin: 1rem;
+  text-align: center;
+}
+
+.title p{
+  font-weight: 600;
+  font-size: larger;
+}
+
+
+.title
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: center;
+    text-align: start;
+    border-bottom: 1px solid black;
+}

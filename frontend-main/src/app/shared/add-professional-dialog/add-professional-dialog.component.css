@@ -1,0 +1,45 @@
+.container-popUp {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  height: auto;
+  background-color: rgb(102, 168, 196);
+}
+
+h2{
+    margin-left: 1rem;
+    color: white;
+}
+
+.title
+{
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    text-align: start;
+    height: 70px;
+    width: 100%;
+    background-color: #A4B494;
+    border-bottom: 1px solid black;
+}
+
+.icons-update button {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 10%;
+}
+
+.form-group{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0.5rem 1rem;
+}
+
+.row {
+     --bs-gutter-x: 0;
+}
+

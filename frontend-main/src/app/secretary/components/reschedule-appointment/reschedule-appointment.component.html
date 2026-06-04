@@ -1,0 +1,27 @@
+<div class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h5 class="modal-title">Reprogramar Turno</h5>
+      <button class="close-btn" (click)="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>Turno actual: {{ appointment?.date }} a las {{ appointment?.time }}</p>
+      
+      <h6>Turnos disponibles:</h6>
+      <div class="available-shifts">
+        <ul class="list-group">
+          <li *ngFor="let available of availableAppointments"
+              [class.list-group-item]="'list-group-item'" 
+              (click)="selectedNewAppointment = available">
+            {{ available.shiftTime }} - {{getDayName( available.businessDays.dayOfWeek) || 'Día no disponible' }} 
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary me-2" (click)="closeModal()">Cerrar</button>
+      <button class="btn btn-primary" (click)="confirmReschedule()" 
+              [disabled]="!selectedNewAppointment">Reprogramar</button>
+    </div>
+  </div>
+</div>

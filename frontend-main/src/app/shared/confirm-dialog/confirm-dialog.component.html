@@ -1,0 +1,24 @@
+<div class="principal-container-popUp">
+  <div class="container-popUp">
+    
+    <div class="title">
+      <h1>Actualizar contraseña</h1>
+      <span>de</span>
+      <p>{{username}}</p>
+    </div>
+
+    <div class="update">
+      <h4>Nueva contraseña</h4>
+      <input type="password" class="form-control" [(ngModel)] = "newPassword" />
+    </div>
+
+    <div class="icons-update">
+      <button (click)="send()" class="btn btn-success m-2">
+        <span  class="material-icons">save</span>
+      </button>
+      <button [hidden]="availableToCancel" (click)="cancel()" class="btn btn-secondary m-2">
+        <span class="material-icons">cancel</span>
+      </button>
+    </div>
+  </div>
+</div>

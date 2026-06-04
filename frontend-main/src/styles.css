@@ -1,0 +1,63 @@
+/* You can add global styles to this file, and also import other style files */
+body {
+  background-color: #76d7c4 ;
+  font-family: 'Roboto Slab', serif;
+  margin: 0;
+  padding: 0;
+}
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+a {
+    text-decoration: none;
+    color: #007bff;
+    transition: color 0.3s ease;
+  }
+  
+  a:hover {
+    color: #0056b3;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+
+
+.cdk-overlay-dark-backdrop {
+  position:absolute !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.6) !important;
+}
+
+.custom-dialog-panel {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  /* height: 100% !important; */
+}
+
+.cdk-overlay-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute; 
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.fa-eye, .fa-eye-slash {
+  font-size: 16px !important;
+  color: black !important;
+}
+html, body { height: 100%; }
+/* body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; } */
+
+

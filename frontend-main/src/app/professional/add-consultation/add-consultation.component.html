@@ -1,0 +1,58 @@
+<!-- add-consultation.component.html -->
+<h2 mat-dialog-title class="modal-header bg-primary text-white p-3">
+    Nueva Consulta Médica
+    <button type="button" class="btn-close btn-close-white" (click)="close()"></button>
+  </h2>
+  
+  <mat-dialog-content class="p-4">
+
+    <form [formGroup]="addForm" (ngSubmit)="onSubmit()" class="row g-3">
+      <div class="mb-3">
+        <p>Fecha del turno: {{ data.appointmentDate | date:'dd/MM/yyyy' }}</p>
+        <p>Hora del turno: {{ data.appointmentTime | slice:0:5 }}</p>
+      </div>
+      <!-- Razón de Consulta -->
+      <div class="col-12">
+        <label class="form-label">Razón de la Consulta <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" formControlName="reason" placeholder="Ej: Control rutinario">
+        <div *ngIf="addForm.get('reason')?.invalid && addForm.get('reason')?.touched" class="text-danger">
+          <small>Este campo es requerido</small>
+        </div>
+      </div>
+  
+      <!-- Diagnóstico -->
+      <div class="col-12">
+        <label class="form-label">Diagnóstico <span class="text-danger">*</span></label>
+        <textarea class="form-control" formControlName="diagnosis" rows="3" 
+                  placeholder="Describa el diagnóstico del paciente"></textarea>
+        <div *ngIf="addForm.get('diagnosis')?.invalid && addForm.get('diagnosis')?.touched" class="text-danger">
+          <small>Este campo es requerido</small>
+        </div>
+      </div>
+  
+      <!-- Tratamiento -->
+      <div class="col-12">
+        <label class="form-label">Tratamiento <span class="text-danger">*</span></label>
+        <textarea class="form-control" formControlName="treatment" rows="3"
+                  placeholder="Describa el tratamiento indicado"></textarea>
+        <div *ngIf="addForm.get('treatment')?.invalid && addForm.get('treatment')?.touched" class="text-danger">
+          <small>Este campo es requerido</small>
+        </div>
+      </div>
+
+
+      
+      <!-- Mensaje de error -->
+      <div *ngIf="errorMessage" class="col-12 alert alert-danger mt-3">
+        {{ errorMessage }}
+      </div>
+  
+      <div class="modal-footer border-0 mt-4">
+        <button type="button" class="btn btn-secondary me-2" (click)="close()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="addForm.invalid || isLoading">
+          <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+          {{ isLoading ? 'Guardando...' : 'Guardar Consulta' }}
+        </button>
+      </div>
+    </form>
+  </mat-dialog-content>

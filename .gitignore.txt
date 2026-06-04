@@ -1,0 +1,8 @@
+# Carpetas locales de editores
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

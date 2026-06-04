@@ -1,0 +1,38 @@
+<div class="principal-container-popUp">
+    <div class="container-popUp">
+        <div class="title">
+            <h1>Especialidades</h1>
+            <div class="icons-update">
+                <button (click)="cancel()" class="btn btn-secondary m-2">
+                    <span class="material-icons">cancel</span>
+                </button>
+            </div>
+        </div>
+        <div class="table-principal-container" *ngIf="specialitiesList.length > 0; else message">
+            <div class="table-container mt-3">
+                <table class="table">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">NOMBRE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let speciality of specialitiesList">
+                            <td class="speciality-row">
+                                <span>{{ speciality.name }}</span>
+                                <button (click)="send(speciality.name)" class="btn btn-danger m-2">
+                                    <span class="material-icons">delete</span>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <ng-template #message>
+            <div class="invalid-feedback d-block m-4">
+                No hay especialidades cargadas
+            </div>
+        </ng-template>
+    </div>
+</div>

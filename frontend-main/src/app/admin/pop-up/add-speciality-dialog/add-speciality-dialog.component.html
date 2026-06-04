@@ -1,0 +1,29 @@
+<div class="principal-container-popUp">
+  <div class="container-popUp">
+    <div class="title">
+      <h1>Agregar Especialidad</h1>
+      <span class="material-icons">domain_add</span>
+    </div>
+
+    <div class="update">
+      <mat-form-field>
+        <mat-label>Especialidad</mat-label>
+        <input type="text" matInput [formControl]="especialidadCtrl" [matAutocomplete]="auto">
+        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="checkSelected()">
+          <mat-option *ngFor="let option of filteredSpecialities | async" [value]="option">
+            {{ option }}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </div>
+
+    <div class="icons-update">
+      <button [disabled]="!selected" (click)="send()" class="btn btn-success m-2">
+        <span class="material-icons">add</span>
+      </button>
+      <button (click)="cancel()" class="btn btn-secondary m-2">
+        <span class="material-icons">cancel</span>
+      </button>
+    </div>
+  </div>
+</div>

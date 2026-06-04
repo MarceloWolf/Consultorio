@@ -1,0 +1,28 @@
+.dialog-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.25rem;
+    background-color: black !important; 
+    color: white !important; 
+    padding: 1rem;
+    border-radius: 4px 4px 0 0; 
+}
+
+
+  
+mat-dialog-content {
+    max-width: 600px;
+    .fw-bold {
+        font-weight: 600;
+    }
+  
+    p {
+      margin-bottom: 0;
+    }
+  
+    .bg-light {
+      border: 1px solid #dee2e6;
+    }
+}
+  
