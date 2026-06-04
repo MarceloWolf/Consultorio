@@ -50,13 +50,13 @@ public class UserController {
     }
 
     @GetMapping("/user/findByUsername/{username}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'PROFESSIONAL')")
     public ResponseEntity<UserDto> getUserByUsername(@PathVariable String username) {
         return ResponseEntity.ok(userService.findUserByUsername(username));
     }
 
     @GetMapping("/user/findByDni/{dni}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY', 'PROFESSIONAL')")
     public ResponseEntity<UserDto> getUserByDni(@PathVariable String dni) {
         return ResponseEntity.ok(userService.findUserByDni(dni));
     }

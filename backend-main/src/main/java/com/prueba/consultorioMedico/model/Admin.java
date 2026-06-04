@@ -13,7 +13,7 @@ import java.util.*;
 @SuperBuilder
 public class Admin extends User{
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "admin_id")
     private List<AdminUser> users;
 
