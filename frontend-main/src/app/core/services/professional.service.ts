@@ -5,13 +5,14 @@ import { Professional } from '../models/professional.model';
 import { MedicalRecord } from '../models/medical-record.model';
 import { Consultation } from '../models/consultation.model';
 import { CreateConsultation } from '../models/createConsultation.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProfessionalService {
 
-  private baseUrl = 'http://localhost:8080/api/professional';
+  private baseUrl = `${environment.apiUrl}/professional`;
  
   constructor(private http: HttpClient) { }
 

@@ -1,1 +1,1 @@
-	CREATE DATABASE IF NOT EXISTS consultorio_medico;
+	CREATE DATABASE IF NOT EXISTS consultorio;

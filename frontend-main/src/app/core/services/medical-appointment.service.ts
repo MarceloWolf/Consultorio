@@ -4,12 +4,13 @@ import { Observable } from 'rxjs';
 import { FullMedicalAppointment } from '../models/full-medical-appointment.model';
 import { MedicalAppointmentDataAllowedToUpdateDto } from '../models/MedicalAppointmentDataAllowedToUpdateDto.model';
 import { MedicalAppointmentStateEnum } from '../models/medical-appointment.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MedicalAppointmentService {
-  urlBase: string = 'http://localhost:8080/api/appointment';
+  urlBase: string = `${environment.apiUrl}/appointment`;
 
   constructor(private httpClient: HttpClient) { }
 

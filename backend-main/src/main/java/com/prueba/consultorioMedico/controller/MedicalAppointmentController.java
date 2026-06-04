@@ -69,7 +69,7 @@ public class MedicalAppointmentController {
             @RequestParam(required = false) String professionalDni,
             @RequestParam(required = false) LocalDate selectedDate) {
                 
-                if(professionalDni == "undefined")
+                if("undefined".equals(professionalDni))
                 {
                    professionalDni = null;
                 }

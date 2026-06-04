@@ -2,13 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  urlBase: string = ('http://localhost:8080/api/auth');
+  urlBase: string = `${environment.apiUrl}/auth`;
 
   constructor(private _httpClient: HttpClient) { }
 

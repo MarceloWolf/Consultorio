@@ -176,6 +176,16 @@ public class MedicalAppointmentService implements IMedicalAppointmentService {
                 // Verificar si el turno se puede eliminar en base a la fecha y hora
                 DateValidation.validateAbleToModifyOrDelete(medicalAppointment.getAppointmentTime(),
                                 medicalAppointment.getAppointmentDate());
+
+                // Revert shift reservation status
+                Professional professional = medicalAppointment.getProfessional();
+                professional.getBusinessDaysList().stream()
+                        .filter(day -> medicalAppointment.getAppointmentDate().getDayOfWeek().equals(day.getDay()))
+                        .forEach(day -> day.getShift().stream()
+                                .filter(shift -> shift.getShiftTime().equals(medicalAppointment.getAppointmentTime()))
+                                .forEach(shift -> shift.setShiftReserved(false)));
+                professionalRepository.save(professional);
+
                 medicalAppointmentRepository.deleteById(appointmentId);
         }
 
@@ -248,7 +258,18 @@ public class MedicalAppointmentService implements IMedicalAppointmentService {
                 // Verifico si se puede eliminar
                 DateValidation.validateAbleToModifyOrDelete(medicalAppointment.getAppointmentTime(),
                                 medicalAppointment.getAppointmentDate());
+
+                // Revert shift reservation status
+                Professional professional = medicalAppointment.getProfessional();
+                professional.getBusinessDaysList().stream()
+                        .filter(day -> medicalAppointment.getAppointmentDate().getDayOfWeek().equals(day.getDay()))
+                        .forEach(day -> day.getShift().stream()
+                                .filter(shift -> shift.getShiftTime().equals(medicalAppointment.getAppointmentTime()))
+                                .forEach(shift -> shift.setShiftReserved(false)));
+                professionalRepository.save(professional);
+
                 medicalAppointment.setState(MedicalAppointmentStateEnum.CANCELADO);
+                medicalAppointmentRepository.save(medicalAppointment);
         }
 
         // Aux

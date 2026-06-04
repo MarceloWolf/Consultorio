@@ -3,7 +3,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from 'src/app/core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { RoleEnum, User } from '../../core/models/user.model';
-import { Observable, of, switchMap } from 'rxjs';
+import { Observable, of, switchMap, catchError } from 'rxjs';
 
 export const roleRouteGuard: CanActivateFn = (route, state): Observable<boolean> => {
 
@@ -16,6 +16,11 @@ export const roleRouteGuard: CanActivateFn = (route, state): Observable<boolean>
   }
 
   const tokenInfo = authService.getInfoToken();
+  if (!tokenInfo || !tokenInfo.sub) {
+    authService.logOut();
+    router.navigate(['/login']);
+    return of(false);
+  }
 
   return userService.getUserByUsername(tokenInfo.sub).pipe(
     switchMap((response: User) => {
@@ -52,6 +57,12 @@ export const roleRouteGuard: CanActivateFn = (route, state): Observable<boolean>
         return of (true); 
       }
 
+      return of(false);
+    }),
+    catchError((error) => {
+      console.error('Error en roleRouteGuard, redirigiendo a login:', error);
+      authService.logOut();
+      router.navigate(['/login']);
       return of(false);
     })
   );

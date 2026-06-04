@@ -89,7 +89,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/addProfessionalWithSpecialities")
     public ResponseEntity<AuthResponse> addProfessional(@Valid @RequestBody ProfessionalSpecialitiesDTO pSpecialitiesDTO) {
-        if (pSpecialitiesDTO.getSpecialityNames().isEmpty() || pSpecialitiesDTO.getSpecialityNames() == null) {
+        if (pSpecialitiesDTO.getSpecialityNames() == null || pSpecialitiesDTO.getSpecialityNames().isEmpty()) {
             AuthResponse message = AuthResponse.builder()
                     .message("Debe proporcionar por lo menos una especialidad")
                     .httpStatus(HttpStatus.BAD_REQUEST)

@@ -4,12 +4,13 @@ import { Observable } from 'rxjs';
 import { User } from '../models/user.model';
 import { Professional } from '../models/professional.model';
 import { Secretary } from '../models/secretary.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
-  urlBase: string = 'http://localhost:8080/api/users';
+  urlBase: string = `${environment.apiUrl}/users`;
 
   constructor(private httpClient: HttpClient) {}
 

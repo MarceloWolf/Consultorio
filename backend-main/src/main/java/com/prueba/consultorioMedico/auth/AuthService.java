@@ -25,7 +25,11 @@ public class AuthService {
 
 
     public AuthResponse register(UserDto request) {
-        Admin admin = Admin.getInstance();
+        var existingAdmin = userRepository.findAll().stream()
+                .filter(u -> u instanceof Admin)
+                .map(u -> (Admin) u)
+                .findFirst();
+        Admin admin = existingAdmin.orElseGet(() -> new Admin());
         admin.setAccountState(AccountStateEnum.ACTIVE);
         admin.setRole(RoleEnum.ADMIN);
         admin.setEmail(request.getEmail());
@@ -49,20 +53,27 @@ public class AuthService {
 
     public AuthResponse authenticate(AuthLoginDto request) {
         authManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-        Admin admin = Admin.getInstance();
-        var userMatch= admin.getUsers().stream()
-                .filter(adminUser -> adminUser.getUsername().equals(request.getUsername()))
+        var existingAdmin = userRepository.findAll().stream()
+                .filter(u -> u instanceof Admin)
+                .map(u -> (Admin) u)
                 .findFirst();
 
-        if(userMatch.isPresent()){
-            AdminUser adminUser = userMatch.get();
-            if(passwordEncoder.matches(request.getPassword(), adminUser.getPassword())){
-                var jwtToken = jwtService.generateToken(admin);
-                return AuthResponse.builder()
-                        .token(jwtToken)
-                        .build();
+        if (existingAdmin.isPresent()) {
+            Admin admin = existingAdmin.get();
+            var userMatch = admin.getUsers().stream()
+                    .filter(adminUser -> adminUser.getUsername().equals(request.getUsername()))
+                    .findFirst();
+
+            if (userMatch.isPresent()) {
+                AdminUser adminUser = userMatch.get();
+                if (passwordEncoder.matches(request.getPassword(), adminUser.getPassword())) {
+                    var jwtToken = jwtService.generateToken(admin);
+                    return AuthResponse.builder()
+                            .token(jwtToken)
+                            .build();
+                }
+                throw new IllegalArgumentException("Contraseña Incorrecta");
             }
-            throw new IllegalArgumentException("Contraseña Incorrecta");
         }
         var user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));

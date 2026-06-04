@@ -119,7 +119,7 @@ public abstract class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.accountState == AccountStateEnum.ACTIVE;
     }
 
     public User() {

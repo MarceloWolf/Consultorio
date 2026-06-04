@@ -12,7 +12,6 @@ import java.util.*;
 @Setter
 @SuperBuilder
 public class Admin extends User{
-    private static Admin adminInstance;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_id")
@@ -21,13 +20,6 @@ public class Admin extends User{
 
     public Admin(){
         users = new ArrayList<>();
-    }
-
-    public static synchronized Admin getInstance(){
-        if(adminInstance == null){
-            adminInstance = new Admin();
-        }
-        return adminInstance;
     }
 
     public boolean addUser(String userName, String password){

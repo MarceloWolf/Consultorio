@@ -28,17 +28,23 @@ public class AppConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> {
-            Admin admin = Admin.getInstance();
-            var adminUserMatch = admin.getUsers().stream()
-                    .filter(adminUser -> adminUser.getUsername().equals(username))
+            var existingAdmin = userRepository.findAll().stream()
+                    .filter(u -> u instanceof Admin)
+                    .map(u -> (Admin) u)
                     .findFirst();
+            if (existingAdmin.isPresent()) {
+                Admin admin = existingAdmin.get();
+                var adminUserMatch = admin.getUsers().stream()
+                        .filter(adminUser -> adminUser.getUsername().equals(username))
+                        .findFirst();
 
-            if (adminUserMatch.isPresent()) {
-                AdminUser adminUser = adminUserMatch.get();
-                return new org.springframework.security.core.userdetails.User(
-                        adminUser.getUsername(),
-                        adminUser.getPassword(),
-                        Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
+                if (adminUserMatch.isPresent()) {
+                    AdminUser adminUser = adminUserMatch.get();
+                    return new org.springframework.security.core.userdetails.User(
+                            adminUser.getUsername(),
+                            adminUser.getPassword(),
+                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
+                }
             }
 
             return userRepository.findByUsername(username)

@@ -41,15 +41,10 @@ export class LoginComponent implements OnInit {
     if (this.loginForm.valid) {
         const { username, password } = this.loginForm.value;
 
-        this.userService.getUserByUsername(username).subscribe({
-            next: (user) => {
-                if (user.accountState === AccountStateEnum.INACTIVE) {
-                    alert('El usuario se encuentra dado de baja, por lo tanto no puede ingresar al sistema');
-                    return;
-                }
-
-                this._authService.login(username, password).subscribe({
-                    next: () => {
+        this._authService.login(username, password).subscribe({
+            next: () => {
+                this.userService.getUserByUsername(username).subscribe({
+                    next: (user) => {
                         this.user = user; 
 
                         switch (this.user?.role) {
@@ -66,10 +61,16 @@ export class LoginComponent implements OnInit {
                                 alert('Rol no reconocido');
                         }
                     },
-                    error: () => alert('Usuario o contraseña incorrectos'),
+                    error: (err) => {
+                        console.error('Error al obtener datos de usuario:', err);
+                        alert('Error al cargar datos del usuario');
+                    }
                 });
             },
-            error: () => alert('Usuario o contraseña incorrectos'),
+            error: (err) => {
+                const errMsg = err?.error?.message || 'Usuario o contraseña incorrectos';
+                alert(errMsg);
+            },
         });
     }
 }

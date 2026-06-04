@@ -1,11 +1,11 @@
-USE consultorio_medico;
+USE consultorio;
 
 /*INSERT INTO consulting_rooms VALUES
 	("1"),
     ("2"),
     ("3");*/
 
- INSERT INTO speciality VALUES
+ INSERT INTO speciality (name) VALUES
 	("Clinica medica"),
     ("Dermatologia"),
     ("Pediatria"),

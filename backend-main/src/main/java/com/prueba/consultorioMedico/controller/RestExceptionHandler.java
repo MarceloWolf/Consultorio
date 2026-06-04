@@ -5,6 +5,8 @@ import com.prueba.consultorioMedico.exception.*;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.authentication.DisabledException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -147,6 +149,16 @@ public class RestExceptionHandler {
     public ResponseEntity<Message> ExpiredJwtException(ExpiredJwtException ex) {
         Message err = new Message(HttpStatus.BAD_REQUEST, "Su sesion ha expirado. Porfavor vuelva a ingresar sus credenciales");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Message> handleAuthenticationException(AuthenticationException ex) {
+        String msg = "Usuario o contraseña incorrectos";
+        if (ex instanceof DisabledException) {
+            msg = "El usuario se encuentra dado de baja, por lo tanto no puede ingresar al sistema";
+        }
+        Message err = new Message(HttpStatus.UNAUTHORIZED, msg);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(err);
     }
 
 }

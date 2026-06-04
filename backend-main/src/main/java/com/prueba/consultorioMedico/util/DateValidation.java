@@ -39,9 +39,9 @@ public class DateValidation {
         LocalDate today = LocalDate.now();
 
         if (date.isBefore(today)) {
-            throw new DateException("No se puede dar un turno en una fecha posterior a la actual");
+            throw new DateException("No se puede dar un turno en una fecha anterior a la actual");
         } else if (date.isEqual(today) && time.isBefore(now)) {
-            throw new TimeException("No se puede dar un turno en un horario posterior al actual");
+            throw new TimeException("No se puede dar un turno en un horario anterior al actual");
         }
     }
 
@@ -70,8 +70,9 @@ public class DateValidation {
         .anyMatch(day -> date.getDayOfWeek().equals(day.getDay()));
 
         boolean isTimeAvailable = professional.getBusinessDaysList().stream()
-        .anyMatch(day -> day.getShift().stream()
-        .anyMatch(shift -> shift.getShiftTime().equals(time)));
+        .filter(day -> date.getDayOfWeek().equals(day.getDay()))
+        .flatMap(day -> day.getShift().stream())
+        .anyMatch(shift -> shift.getShiftTime().equals(time));
         
         if(!isTimeAvailable)
         {

@@ -6,12 +6,13 @@ import { MedicalAppointment } from '../models/medical-appointment.model';
 import { MedicalRecord } from '../models/medical-record.model';
 import { FullMedicalAppointment } from '../models/full-medical-appointment.model';
 import { Professional } from '../models/professional.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PatientService {
-  private baseUrl = 'http://localhost:8080/api/secretary';
+  private baseUrl = `${environment.apiUrl}/secretary`;
 
   constructor(private http: HttpClient) { }
 
