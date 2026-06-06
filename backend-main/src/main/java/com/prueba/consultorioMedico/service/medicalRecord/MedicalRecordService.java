@@ -1,12 +1,16 @@
 package com.prueba.consultorioMedico.service.medicalRecord;
 
 import com.prueba.consultorioMedico.dto.MedicalRecordDto;
+import com.prueba.consultorioMedico.model.AuditLog;
 import com.prueba.consultorioMedico.model.MedicalRecord;
+import com.prueba.consultorioMedico.repository.AuditLogRepository;
 import com.prueba.consultorioMedico.repository.IMedicalRecordRepository;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MedicalRecordService implements IMedicalRecordService {
     private final IMedicalRecordRepository imedicalRecordRepository;
+    private final AuditLogRepository auditLogRepository;
 
     @Override
     @Transactional
@@ -22,10 +27,21 @@ public class MedicalRecordService implements IMedicalRecordService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public MedicalRecord getMedicalRecordByPatient(String patientDni) {
-        return imedicalRecordRepository.findByPatientDni(patientDni).orElseThrow(() -> new NoSuchElementException(
+        MedicalRecord record = imedicalRecordRepository.findByPatientDni(patientDni).orElseThrow(() -> new NoSuchElementException(
                 "Medical Record of patient with DNI: " + patientDni + " has not been found"));
+        
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        auditLogRepository.save(AuditLog.builder()
+                .username(username)
+                .patientDni(patientDni)
+                .action("VIEW_MEDICAL_RECORD")
+                .timestamp(LocalDateTime.now())
+                .details("Accessed medical record of patient DNI: " + patientDni)
+                .build());
+
+        return record;
     }
 
     @Override
@@ -39,13 +55,33 @@ public class MedicalRecordService implements IMedicalRecordService {
         medicalRecord.setBloodGroup(medicalRecordDto.getBloodGroup());
 
         this.addMedicalRecord(medicalRecord);
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        auditLogRepository.save(AuditLog.builder()
+                .username(username)
+                .patientDni(dni)
+                .action("UPDATE_MEDICAL_RECORD")
+                .timestamp(LocalDateTime.now())
+                .details("Updated medical record for patient DNI: " + dni)
+                .build());
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public MedicalRecord findMedicalRecordByPatientDNI(String dni) {
-        return imedicalRecordRepository.findByPatientDni(dni)
+        MedicalRecord record = imedicalRecordRepository.findByPatientDni(dni)
                 .orElseThrow((() -> new NoSuchElementException("Medical Record with Patient with DNI: " +
                         dni + "has not been found")));
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        auditLogRepository.save(AuditLog.builder()
+                .username(username)
+                .patientDni(dni)
+                .action("VIEW_MEDICAL_RECORD")
+                .timestamp(LocalDateTime.now())
+                .details("Accessed medical record by patient DNI: " + dni)
+                .build());
+
+        return record;
     }
 }

@@ -1,0 +1,47 @@
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-header-container {
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.app-body-container {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  height: calc(100vh - 80px);
+  overflow: hidden;
+  width: 100%;
+}
+
+.app-sidebar-container {
+  flex-shrink: 0;
+}
+
+.app-content-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background: transparent;
+  gap: 1.5rem;
+}
+
+/* Glass panel wrapper for content to blend nicely */
+.main-content-glass {
+  flex-grow: 1;
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  overflow-x: hidden;
+}
+
+/* Fade animation on layout swap */
+.animate-fade {
+  animation: fadeIn 0.4s ease-out;
+}

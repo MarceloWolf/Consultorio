@@ -1,45 +1,133 @@
 .container-popUp {
   display: flex;
-  justify-content: center;
   flex-direction: column;
+  width: 100%;
+  max-width: 900px;
+  background: var(--panel-bg) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid var(--panel-border) !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--card-shadow) !important;
+  color: var(--text-primary) !important;
+  padding: 30px !important;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.title {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  height: auto;
-  background-color: rgb(102, 168, 196);
+  border-bottom: 1px solid var(--panel-border) !important;
+  padding-bottom: 15px !important;
+  margin-bottom: 25px !important;
+  width: 100%;
+  background: transparent !important;
 }
 
-h2{
-    margin-left: 1rem;
-    color: white;
+.title h2 {
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+  font-size: 24px !important;
+  margin: 0 !important;
 }
 
-.title
-{
-    display: flex;
-    justify-content: start;
-    align-items: center;
-    text-align: start;
-    height: 70px;
-    width: 100%;
-    background-color: #A4B494;
-    border-bottom: 1px solid black;
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px !important;
+  padding: 0 10px;
+}
+
+.form-group label {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--text-secondary) !important;
+  margin-bottom: 6px !important;
+  text-align: left;
+}
+
+.form-control {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--panel-border) !important;
+  color: var(--text-primary) !important;
+  border-radius: var(--border-radius-sm) !important;
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  transition: all 0.2s ease !important;
+  height: 38px !important;
+}
+
+.form-control:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px var(--accent-glow) !important;
+}
+
+.form-check-input {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--panel-border) !important;
+  cursor: pointer;
+}
+
+.form-check-input:checked {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+.form-check-label {
+  font-size: 13px !important;
+  color: var(--text-primary) !important;
+  margin-left: 6px !important;
+  cursor: pointer;
+}
+
+.icons-update {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  margin-top: 20px !important;
+  gap: 15px !important;
+  width: 100%;
 }
 
 .icons-update button {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    gap: 10%;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 10px 20px !important;
+  border-radius: var(--border-radius-sm) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  transition: all 0.2s ease !important;
+  border: none !important;
+  cursor: pointer !important;
 }
 
-.form-group{
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin: 0.5rem 1rem;
+.btn-success {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px var(--accent-glow) !important;
+}
+
+.btn-success:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(20, 184, 166, 0.35) !important;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--panel-border) !important;
+  color: var(--text-primary) !important;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: var(--text-primary) !important;
 }
 
 .row {
-     --bs-gutter-x: 0;
+  --bs-gutter-x: 0;
+  width: 100%;
 }
-

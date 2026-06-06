@@ -13,16 +13,14 @@
   
 mat-dialog-content {
     max-width: 600px;
-    .fw-bold {
-        font-weight: 600;
-    }
-  
-    p {
-      margin-bottom: 0;
-    }
-  
-    .bg-light {
-      border: 1px solid #dee2e6;
-    }
+}
+mat-dialog-content .fw-bold {
+    font-weight: 600;
+}
+mat-dialog-content p {
+  margin-bottom: 0;
+}
+mat-dialog-content .bg-light {
+  border: 1px solid #dee2e6;
 }
   

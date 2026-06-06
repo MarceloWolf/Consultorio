@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/core/services/auth.service';
+import { ThemeService } from 'src/app/core/services/theme.service';
 
 @Component({
   selector: 'app-header',
@@ -11,11 +12,19 @@ export class HeaderComponent implements OnInit{
 
   loggedInUser:string = '';
   
-  constructor(private authService:AuthService, private router:Router){}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    public themeService: ThemeService
+  ){}
   
   ngOnInit(): void {
     const token = this.authService.getInfoToken();
-    this.loggedInUser = token.sub;
+    this.loggedInUser = token ? token.sub : '';
+  }
+
+  toggleTheme() {
+    this.themeService.toggleTheme();
   }
 
   logOut()
@@ -25,3 +34,4 @@ export class HeaderComponent implements OnInit{
   }
 
 }
+

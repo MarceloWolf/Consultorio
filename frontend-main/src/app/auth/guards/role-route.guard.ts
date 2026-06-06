@@ -1,69 +1,56 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from 'src/app/core/services/auth.service';
-import { UserService } from '../../core/services/user.service';
-import { RoleEnum, User } from '../../core/models/user.model';
-import { Observable, of, switchMap, catchError } from 'rxjs';
+import { RoleEnum } from '../../core/models/user.model';
 
-export const roleRouteGuard: CanActivateFn = (route, state): Observable<boolean> => {
+export const roleRouteGuard: CanActivateFn = (route, state): boolean => {
 
   const authService = inject(AuthService);
-  const userService = inject(UserService);
   const router = inject(Router);
 
   if (!authService.isAuthenticated()) {
-    return of(true);
+    return true;
   }
 
   const tokenInfo = authService.getInfoToken();
-  if (!tokenInfo || !tokenInfo.sub) {
+  if (!tokenInfo || !tokenInfo.sub || !tokenInfo.role) {
     authService.logOut();
     router.navigate(['/login']);
-    return of(false);
+    return false;
   }
 
-  return userService.getUserByUsername(tokenInfo.sub).pipe(
-    switchMap((response: User) => {
-      const user: User = response;
-    
-      if (route.url[0]?.path === 'login') {
-        if (user.role === RoleEnum.PROFESSIONAL) {
-          router.navigate(['/professional']);
-        } else if (user.role === RoleEnum.SECRETARY) {
-          router.navigate(['/secretary']);
-        } else if (user.role === RoleEnum.ADMIN) {
-          router.navigate(['/admin']);
-        }
-        return of(false);  
-      }
-      
-      if (user.role === RoleEnum.PROFESSIONAL) {
-        if (route.url[0]?.path !== 'professional') {
-          router.navigate(['/professional']);
-          return of(false);  
-        }
-        return of(true);  
-      }
+  const userRole = tokenInfo.role;
 
-      if (user.role === RoleEnum.SECRETARY) {
-        if (route.url[0]?.path !== 'secretary') {
-          router.navigate(['/secretary']);
-          return of(false);  
-        }
-        return of(true);  
-      }
+  if (route.url[0]?.path === 'login') {
+    if (userRole === RoleEnum.PROFESSIONAL) {
+      router.navigate(['/professional']);
+    } else if (userRole === RoleEnum.SECRETARY) {
+      router.navigate(['/secretary']);
+    } else if (userRole === RoleEnum.ADMIN) {
+      router.navigate(['/admin']);
+    }
+    return false;  
+  }
+  
+  if (userRole === RoleEnum.PROFESSIONAL) {
+    if (route.url[0]?.path !== 'professional' && route.url[0]?.path !== 'patient') {
+      router.navigate(['/professional']);
+      return false;  
+    }
+    return true;  
+  }
 
-      if (user.role === RoleEnum.ADMIN) {
-        return of (true); 
-      }
+  if (userRole === RoleEnum.SECRETARY) {
+    if (route.url[0]?.path !== 'secretary' && route.url[0]?.path !== 'patient') {
+      router.navigate(['/secretary']);
+      return false;  
+    }
+    return true;  
+  }
 
-      return of(false);
-    }),
-    catchError((error) => {
-      console.error('Error en roleRouteGuard, redirigiendo a login:', error);
-      authService.logOut();
-      router.navigate(['/login']);
-      return of(false);
-    })
-  );
+  if (userRole === RoleEnum.ADMIN) {
+    return true; 
+  }
+
+  return false;
 };

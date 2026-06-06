@@ -20,6 +20,8 @@ import { Speciality } from 'src/app/core/models/speciality.model';
 import { SpecialityService } from 'src/app/core/services/speciality.service';
 import { MedicalAppointment } from 'src/app/core/models/medical-appointment.model';
 import { ConsultationDetailComponent } from '../consultation-detail/consultation-detail.component';
+import { ToothStateService, ToothState } from 'src/app/core/services/tooth-state.service';
+import { MedicalImageService, MedicalImage } from 'src/app/core/services/medical-image.service';
 
 @Component({
   selector: 'app-professional-view',
@@ -50,6 +52,29 @@ export class ProfessionalViewComponent implements OnInit {
   sortColumn: string | null = null;
   sortDirection: 'asc' | 'desc' = 'asc';
 
+  // New Odontogram & Image properties
+  activeTab: string = 'details';
+  toothStates: ToothState[] = [];
+  selectedTooth: number | null = null;
+  selectedToothState: string = 'SANO';
+  selectedToothNotes: string = '';
+  teethListUpper: number[] = [18, 17, 16, 15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 26, 27, 28];
+  teethListLower: number[] = [48, 47, 46, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35, 36, 37, 38];
+
+  medicalImages: MedicalImage[] = [];
+  selectedImage: MedicalImage | null = null;
+  imageZoom: number = 1.0;
+  imageBrightness: number = 100;
+  imageContrast: number = 100;
+  imageInverted: boolean = false;
+
+  // Image Upload Form
+  uploadFileName: string = '';
+  uploadFileType: string = 'RX';
+  uploadComments: string = '';
+  uploadBase64Data: string = '';
+  imageSuccessMessage: string | null = null;
+
 
 
   filtrosForm = new FormGroup({
@@ -58,7 +83,9 @@ export class ProfessionalViewComponent implements OnInit {
     filtroEspecialidad: new FormControl(null) 
   });
 
-  constructor(private _medicalAppointmentService: MedicalAppointmentService,private _authService:AuthService, 
+  constructor(
+      private _medicalAppointmentService: MedicalAppointmentService,
+      private _authService:AuthService, 
       private _userService:UserService,
       private _patientService:PatientService,
       private _medicalAppService:MedicalAppointmentService,
@@ -66,6 +93,8 @@ export class ProfessionalViewComponent implements OnInit {
       private _medicalRecordService: MedicalRecordService,
       private _consultationService: ConsultationService,
       private _specialityService: SpecialityService,
+      private _toothStateService: ToothStateService,
+      private _medicalImageService: MedicalImageService,
       private router:Router,
       private dialog:MatDialog) {}
 
@@ -225,8 +254,11 @@ export class ProfessionalViewComponent implements OnInit {
         this.selectedPatient = patient;
         this.showPatientDetail = true;
         this.showMedicalHistory = false;
-        console.log(this.selectedPatient)
-        console.log(this.showPatientDetail)
+        this.activeTab = 'details';
+        this.selectedTooth = null;
+        this.selectedImage = null;
+        this.loadOdontograma(patient.dni);
+        this.loadMedicalImages(patient.dni);
       },
       error: (err) => this.handleError('Error obteniendo paciente', err)
     });
@@ -560,5 +592,141 @@ export class ProfessionalViewComponent implements OnInit {
     setTimeout(() => this.errorMessage = null, 5000);
   }
 
+  // Odontogram Methods
+  loadOdontograma(patientDni: string) {
+    this._toothStateService.getToothStates(patientDni).subscribe({
+      next: (states) => {
+        this.toothStates = states;
+      },
+      error: (err) => console.error('Error cargando odontograma', err)
+    });
+  }
 
+  selectTooth(toothNumber: number) {
+    this.selectedTooth = toothNumber;
+    const existing = this.toothStates.find(t => t.toothNumber === toothNumber);
+    if (existing) {
+      this.selectedToothState = existing.state;
+      this.selectedToothNotes = existing.notes || '';
+    } else {
+      this.selectedToothState = 'SANO';
+      this.selectedToothNotes = '';
+    }
+  }
+
+  getToothColor(toothNumber: number): string {
+    const tooth = this.toothStates.find(t => t.toothNumber === toothNumber);
+    if (!tooth) return 'var(--tooth-empty-bg)';
+    switch (tooth.state) {
+      case 'CARIES': return 'var(--tooth-caries-bg)';
+      case 'TRATAMIENTO_CONDUCTO': return 'var(--tooth-conducto-bg)';
+      case 'CORONA': return 'var(--tooth-corona-bg)';
+      case 'AUSENTE': return 'var(--tooth-ausente-bg)';
+      case 'SANO':
+      default:
+        return 'var(--tooth-sano-bg)';
+    }
+  }
+
+  getToothStateLabel(toothNumber: number): string {
+    const tooth = this.toothStates.find(t => t.toothNumber === toothNumber);
+    return tooth ? tooth.state : 'SANO';
+  }
+
+  saveToothState() {
+    if (!this.selectedPatient || !this.selectedTooth) return;
+    const payload = {
+      toothNumber: this.selectedTooth,
+      state: this.selectedToothState,
+      notes: this.selectedToothNotes
+    };
+    this._toothStateService.saveOrUpdateToothState(this.selectedPatient.dni, payload).subscribe({
+      next: (updated) => {
+        const index = this.toothStates.findIndex(t => t.toothNumber === updated.toothNumber);
+        if (index !== -1) {
+          this.toothStates[index] = updated;
+        } else {
+          this.toothStates.push(updated);
+        }
+        this.imageSuccessMessage = `Diente ${this.selectedTooth} guardado con éxito.`;
+        setTimeout(() => this.imageSuccessMessage = null, 3000);
+      },
+      error: (err) => this.handleError('Error guardando estado del diente', err)
+    });
+  }
+
+  // Medical Images Methods
+  loadMedicalImages(patientDni: string) {
+    this._medicalImageService.getMedicalImages(patientDni).subscribe({
+      next: (images) => {
+        this.medicalImages = images;
+      },
+      error: (err) => console.error('Error cargando imágenes médicas', err)
+    });
+  }
+
+  onImageSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (!file) return;
+    this.uploadFileName = file.name;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.uploadBase64Data = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  uploadImage() {
+    if (!this.selectedPatient || !this.uploadBase64Data) return;
+    const payload = {
+      fileName: this.uploadFileName || 'Estudio_Dental.png',
+      fileType: this.uploadFileType,
+      comments: this.uploadComments,
+      imageData: this.uploadBase64Data
+    };
+    this._medicalImageService.uploadMedicalImage(this.selectedPatient.dni, payload).subscribe({
+      next: (saved) => {
+        this.medicalImages.push(saved);
+        this.uploadFileName = '';
+        this.uploadComments = '';
+        this.uploadBase64Data = '';
+        this.imageSuccessMessage = 'Estudio cargado con éxito.';
+        setTimeout(() => this.imageSuccessMessage = null, 3000);
+      },
+      error: (err) => this.handleError('Error cargando imagen', err)
+    });
+  }
+
+  deleteImage(imageId: number) {
+    if (confirm('¿Está seguro de eliminar esta imagen médica?')) {
+      this._medicalImageService.deleteMedicalImage(imageId).subscribe({
+        next: () => {
+          this.medicalImages = this.medicalImages.filter(img => img.id !== imageId);
+          if (this.selectedImage && this.selectedImage.id === imageId) {
+            this.selectedImage = null;
+          }
+          this.imageSuccessMessage = 'Imagen eliminada.';
+          setTimeout(() => this.imageSuccessMessage = null, 3000);
+        },
+        error: (err) => this.handleError('Error al eliminar imagen', err)
+      });
+    }
+  }
+
+  selectImageForViewing(img: MedicalImage) {
+    this.selectedImage = img;
+    this.resetViewerAdjustments();
+  }
+
+  adjustZoom(factor: number) {
+    this.imageZoom = Math.min(Math.max(this.imageZoom + factor, 0.5), 4.0);
+  }
+
+  resetViewerAdjustments() {
+    this.imageZoom = 1.0;
+    this.imageBrightness = 100;
+    this.imageContrast = 100;
+    this.imageInverted = false;
+  }
 }

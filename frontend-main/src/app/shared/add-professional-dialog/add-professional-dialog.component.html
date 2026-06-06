@@ -138,8 +138,8 @@
                 class="form-control"
                 formControlName="role"
               >
-                <option value="SECRETARY">SECRETARY</option>
-                <option value="PROFESSIONAL">PROFESSIONAL</option>
+                <option value="SECRETARY">Secretario/a</option>
+                <option value="PROFESSIONAL">Profesional</option>
               </select>
               <div *ngIf="userForm.get('role')?.invalid && userForm.get('role')?.touched" class="text-danger">
                 <small>El rol es obligatorio.</small>

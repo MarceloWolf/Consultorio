@@ -8,6 +8,7 @@ const routes: Routes = [
   { path: 'secretary', loadChildren: () => import('./secretary/secretary.module').then(m => m.SecretaryModule), canActivate:[isLoggedInGuard,roleRouteGuard]},
   {path:'login', loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule), canActivate:[roleRouteGuard]},
   { path:'professional', loadChildren: () => import('./professional/professional.module').then(m => m.ProfessionalModule),canActivate:[isLoggedInGuard,roleRouteGuard]},
+  { path: 'patient', loadChildren: () => import('./patient/patient.module').then(m => m.PatientModule), canActivate:[isLoggedInGuard,roleRouteGuard] },
 
   { path: '', pathMatch: 'full', redirectTo: 'login' },
   { path: '**', pathMatch: 'full', redirectTo: 'login' }

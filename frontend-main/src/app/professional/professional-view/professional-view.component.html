@@ -1,17 +1,16 @@
-<!-- professional-view.component.html -->
-<app-header></app-header>
 
 <div class="container">
   <!-- Sección principal -->
   <div *ngIf="!showMedicalHistory && !showPatientDetail">
     <div class="header">
       <div class="filtros-container" [formGroup]="filtrosForm">
-        <div class="input-group w-25">
+        <!-- Search DNI -->
+        <div class="input-group">
           <input
             formControlName="dniBusqueda"
             (keyup.enter)="findPatient()"
             type="text"
-            class="form-control text-center uniform-input"
+            class="form-control text-center"
             placeholder="Buscar por DNI"
           />
           <span (click)="findPatient()" class="input-group-text">
@@ -25,15 +24,17 @@
           </div>
         </div>
         
-        <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
-          <input type="date" class="form-control text-center uniform-input" (change)="onDateChange($event)" />
-          <button class="btn btn-primary ms-2" (click)="fetchAppointmentsByDate()">
+        <!-- Date Search -->
+        <div class="d-flex align-items-center">
+          <input type="date" class="uniform-input" (change)="onDateChange($event)" />
+          <button class="btn-action btn-primary-action ms-2" style="height: 38px;" (click)="fetchAppointmentsByDate()">
             Buscar
           </button>
         </div>
         
-        <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
-          <select class="form-select uniform-input" (change)="searchBySpeciality($event)">
+        <!-- Speciality search -->
+        <div class="d-flex align-items-center">
+          <select class="form-select" (change)="searchBySpeciality($event)">
             <option [ngValue]="null" disabled selected>Seleccionar especialidad</option>
             <option *ngFor="let spec of specialities" [value]="spec.name">
               {{ spec.name }}
@@ -41,20 +42,21 @@
           </select>
         </div>
       
+        <!-- State filter -->
         <select formControlName="filtroEstado" 
-                class="form-select uniform-input"
+                class="form-select"
                 (change)="onStateFilterChange($event)">
           <option [ngValue]='null' disabled selected>Estado Paciente</option>
           <option value="INICIADO">INICIADOS</option>
           <option value="REPROGRAMADO">REPROGRAMADOS</option>
           <option value="CANCELADO">CANCELADOS</option>
         </select>
-      
       </div>
 
-      <div *ngIf="filteredAppointments && filteredAppointments.length > 0">
-        <table class="table mt-3">
-          <thead class="table-dark text-center">
+      <!-- Appointments table -->
+      <div *ngIf="filteredAppointments && filteredAppointments.length > 0" class="table-responsive">
+        <table>
+          <thead>
             <tr>
               <th>NOMBRE</th>
               <th (click)="sortData('patientLastname')">APELLIDO 
@@ -70,7 +72,7 @@
               <th>DETALLE DEL PACIENTE</th>
             </tr>
           </thead>
-          <tbody class="text-center">
+          <tbody>
             <tr *ngFor="let appointment of filteredAppointments">
               <td>{{ appointment.patientName }}</td>
               <td>{{ appointment.patientLastname }}</td>
@@ -80,7 +82,7 @@
               <td>{{ appointment.time | slice:0:5 }}</td>
               <td>{{ appointment.date | date:'dd/MM/yyyy' }}</td>
               <td>
-                <button class="btn btn-info btn-sm" (click)="viewPatientDetail(appointment)">
+                <button class="btn-action btn-info-action" (click)="viewPatientDetail(appointment)">
                   Ver más
                 </button>
               </td>
@@ -89,124 +91,361 @@
         </table>
       </div>
       <div class="d-flex">
-        <button *ngIf="buttonGoBackValidator" (click)='returnToAdminView()' class="btn btn-dark ms-auto">Volver Admin</button>
+        <button *ngIf="buttonGoBackValidator" (click)='returnToAdminView()' class="btn-volver-admin ms-auto">Volver Admin</button>
       </div>  
-
     </div>
   </div>
 
 
+  <!-- Patient Details -->
   <div *ngIf="showPatientDetail && !showMedicalHistory">
-    <h3>Detalles del paciente {{ selectedPatient?.name }} {{ selectedPatient?.lastname }}</h3>
-    <table class="table mt-3">
-      <thead class="table-dark text-center">
-        <tr>
-          <th>DNI</th>
-          <th>NOMBRE</th>
-          <th>APELLIDO</th>
-          <th>EMAIL</th>
-          <th>TELEFONO</th>
-          <th>DIRECCION</th>
-          <th>HISTORIAL MEDICO</th>
-        </tr>
-      </thead>
-      <tbody class="text-center">
-        <tr>
-          <td>{{ selectedPatient?.dni }}</td>
-          <td>{{ selectedPatient?.name }}</td>
-          <td>{{ selectedPatient?.lastname }}</td>
-          <td>{{ selectedPatient?.email }} </td>
-          <td>{{ selectedPatient?.phoneNumber }} </td>
-          <td>{{ selectedPatient?.address}} </td>
-          <td>
-            <button class="btn btn-info btn-sm" (click)="viewMedicalRecords(selectedPatient?.dni!)" >
-              Ver más
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3>Ficha Clínica de: <span style="color: var(--accent);">{{ selectedPatient?.name }} {{ selectedPatient?.lastname }}</span></h3>
+      <button class="btn-volver-admin" (click)="goBack()">Volver al Listado</button>
+    </div>
 
-    <button class="btn btn-secondary mt-3" (click)="goBack()">Volver</button>
-  </div>
+    <!-- Tab Navigation inside Patient Details -->
+    <div class="tabs-container mb-4">
+      <button class="tab-button" [class.active]="activeTab === 'details'" (click)="activeTab = 'details'">
+        <span class="material-icons">assignment_ind</span> Datos Generales
+      </button>
+      <button class="tab-button" [class.active]="activeTab === 'odontograma'" (click)="activeTab = 'odontograma'">
+        <span class="material-icons">medical_services</span> Odontograma
+      </button>
+      <button class="tab-button" [class.active]="activeTab === 'images'" (click)="activeTab = 'images'">
+        <span class="material-icons">photo_library</span> Placas RX y TAC
+      </button>
+    </div>
 
-  <div *ngIf="showMedicalHistory && !showConsultations">
-    <h3>Historial Medico del paciente {{ selectedPatient?.name }} {{ selectedPatient?.lastname }}</h3>
-    <table class="table mt-3">
-      <thead class="table-dark text-center">
-        <tr>
-          <th>PACIENTE</th>
-          <th>DESCRIPCION</th>
-          <th>FECHA</th>
-          <th>HORA</th>
-          <th>PESO</th>
-          <th>ALTURA</th>
-          <th>GRUPO SANIGUINEO</th>
-          <th>CONSULTAS</th>
-          <th>EDITAR</th>
-        </tr>
-      </thead>
-      <tbody class="text-center">
-        <tr *ngFor="let record of medicalHistory " >
-          <td>{{ record?.patient?.name }}  {{ record?.patient?.lastname }}</td>
-          <td>
-            <div *ngIf="editingRecordDni !== record!.patient!.dni">{{ record!.description || 'Sin Descripcion'}}</div>
-            <input *ngIf="editingRecordDni === record!.patient!.dni" 
-                   [(ngModel)]="editedMedicalRecord!.description"
-                   class="form-control edit-input">
-          </td>          
-          <td>{{ record?.date | date:'dd/MM/yyyy'  }}</td>
-          <td>{{ record?.time | slice:0:5}} </td>
-          <td>
-            <div *ngIf="editingRecordDni !== record!.patient.dni">{{ record!.weight || 'No especificado'}}</div>
-            <input *ngIf="editingRecordDni === record!.patient!.dni" 
-                   [(ngModel)]="editedMedicalRecord!.weight"
-                   class="form-control edit-input">
-          </td>
-          <td><div *ngIf="editingRecordDni !== record!.patient!.dni">{{ record!.height || 'No especificado'}}</div>
-            <input *ngIf="editingRecordDni === record!.patient!.dni" 
-                   [(ngModel)]="editedMedicalRecord!.height"
-                   class="form-control edit-input">
-          </td>
-          <td><div *ngIf="editingRecordDni !== record!.patient!.dni">{{ record!.bloodGroup || 'No especificado' }}</div>
-            <input *ngIf="editingRecordDni === record!.patient!.dni" 
-                   [(ngModel)]="editedMedicalRecord!.bloodGroup"
-                   class="form-control edit-input">
-          </td>
-          <td>
-            <button class="btn btn-info btn-sm" (click)="viewConsultationPatient(record.id!)" >
-              Ver más
-            </button>
-          </td>
-          <td>
-            <div *ngIf="editingRecordDni !== record?.patient!.dni">
-              <button class="btn btn-primary btn-sm m-1" (click)="modifyMedicalRecord(record!)">
-                <span class="material-icons">edit</span>
-              </button>
+    <!-- Tab 1: General Details -->
+    <div *ngIf="activeTab === 'details'" class="animate-fade">
+      <div class="table-responsive mb-4">
+        <table>
+          <thead>
+            <tr>
+              <th>DNI</th>
+              <th>NOMBRE</th>
+              <th>APELLIDO</th>
+              <th>EMAIL</th>
+              <th>TELÉFONO</th>
+              <th>DIRECCIÓN</th>
+              <th>HISTORIAL MÉDICO</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ selectedPatient?.dni }}</td>
+              <td>{{ selectedPatient?.name }}</td>
+              <td>{{ selectedPatient?.lastname }}</td>
+              <td>{{ selectedPatient?.email }}</td>
+              <td>{{ selectedPatient?.phoneNumber }}</td>
+              <td>{{ selectedPatient?.address }}</td>
+              <td>
+                <button class="btn-action btn-info-action" (click)="viewMedicalRecords(selectedPatient?.dni!)">
+                  Ver más
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab 2: Odontograma (Tooth Map) -->
+    <div *ngIf="activeTab === 'odontograma'" class="animate-fade">
+      <div class="odontograma-layout">
+        <!-- Dental Map Grid -->
+        <div class="dental-map-panel glass-panel p-4 mb-4">
+          <h4 class="mb-3 text-center">Mapa Bucal - Nomenclatura FDI</h4>
+          
+          <!-- Upper Row -->
+          <div class="teeth-row mb-4">
+            <span class="row-label">Superior (Maxilar)</span>
+            <div class="teeth-grid">
+              <div *ngFor="let num of teethListUpper" 
+                   class="tooth-card" 
+                   [class.selected]="selectedTooth === num"
+                   [ngClass]="'state-' + getToothStateLabel(num).toLowerCase()"
+                   (click)="selectTooth(num)">
+                <div class="tooth-crown" [style.background-color]="getToothColor(num)">
+                  <span class="tooth-num">{{ num }}</span>
+                </div>
+                <span class="tooth-status-dot">{{ getToothStateLabel(num) | slice:0:3 }}</span>
+              </div>
             </div>
+          </div>
+
+          <!-- Lower Row -->
+          <div class="teeth-row">
+            <span class="row-label">Inferior (Mandíbula)</span>
+            <div class="teeth-grid">
+              <div *ngFor="let num of teethListLower" 
+                   class="tooth-card" 
+                   [class.selected]="selectedTooth === num"
+                   [ngClass]="'state-' + getToothStateLabel(num).toLowerCase()"
+                   (click)="selectTooth(num)">
+                <div class="tooth-crown" [style.background-color]="getToothColor(num)">
+                  <span class="tooth-num">{{ num }}</span>
+                </div>
+                <span class="tooth-status-dot">{{ getToothStateLabel(num) | slice:0:3 }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tooth Selection & Editing Panel -->
+        <div class="tooth-edit-panel glass-panel p-4" *ngIf="selectedTooth">
+          <h4 class="mb-3">Configurar Pieza Dental #{{ selectedTooth }}</h4>
+          
+          <div class="form-group mb-3">
+            <label class="form-label">Estado del Diente:</label>
+            <select class="form-select" [(ngModel)]="selectedToothState">
+              <option value="SANO">Sano (Normal)</option>
+              <option value="CARIES">Caries (Requiere tratamiento)</option>
+              <option value="TRATAMIENTO_CONDUCTO">Tratamiento de Conducto (Endodoncia)</option>
+              <option value="CORONA">Corona o Prótesis</option>
+              <option value="AUSENTE">Ausente (Pieza extraída/faltante)</option>
+            </select>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label">Notas / Observaciones del Profesional:</label>
+            <textarea class="form-control" rows="3" [(ngModel)]="selectedToothNotes" placeholder="Escriba el detalle de los trabajos realizados o planeados para esta pieza..."></textarea>
+          </div>
+
+          <button class="btn btn-light w-100" (click)="saveToothState()">
+            <span class="material-icons">save</span> Guardar Estado
+          </button>
+        </div>
+        
+        <div class="alert alert-info text-center" *ngIf="!selectedTooth">
+          Seleccione una pieza dental del mapa para editar su estado y agregar notas clínicas.
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Placas RX y TAC (Medical Images) -->
+    <div *ngIf="activeTab === 'images'" class="animate-fade">
+      <div class="row">
+        <!-- Left: Upload & Gallery -->
+        <div class="col-lg-5 mb-4">
+          <!-- Upload Widget -->
+          <div class="glass-panel p-4 mb-4">
+            <h4 class="mb-3">Cargar Nuevo Estudio</h4>
             
-            <div *ngIf="editingRecordDni === record?.patient!.dni" class="btn-group">
-              <button class="btn btn-success btn-sm m-1" 
-                      (click)="saveMedicalRecordChanges()"
-                      [disabled]="!isMedicalRecordValid()">
-                <span class="material-icons">save</span>
-              </button>
-              <button class="btn btn-secondary btn-sm m-1" (click)="cancelMedicalRecordEdit()">
-                <span class="material-icons">cancel</span>
-              </button>
+            <div class="form-group mb-3">
+              <label class="form-label">Tipo de Estudio:</label>
+              <select class="form-select" [(ngModel)]="uploadFileType">
+                <option value="RX">Radiografía (RX)</option>
+                <option value="TAC">Tomografía Computada (TAC)</option>
+              </select>
             </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
 
-    <button class="btn btn-secondary mt-3" (click)="goBackPatient()">Volver</button>
+            <div class="form-group mb-3">
+              <label class="form-label">Comentarios / Diagnóstico del Estudio:</label>
+              <input type="text" class="form-control" [(ngModel)]="uploadComments" placeholder="Ej: Placa panorámica previa a extracción" />
+            </div>
+
+            <div class="form-group mb-3">
+              <label class="form-label">Seleccionar Imagen (PNG/JPG):</label>
+              <input type="file" class="form-control" (change)="onImageSelected($event)" accept="image/*" />
+            </div>
+
+            <button class="btn btn-light w-100" [disabled]="!uploadBase64Data" (click)="uploadImage()">
+              <span class="material-icons">cloud_upload</span> Subir Archivo
+            </button>
+          </div>
+
+          <!-- Studies Gallery -->
+          <div class="glass-panel p-4">
+            <h4 class="mb-3">Galería de Estudios</h4>
+            <div class="alert alert-secondary text-center" *ngIf="medicalImages.length === 0">
+              No hay placas cargadas para este paciente.
+            </div>
+            <div class="studies-list" *ngIf="medicalImages.length > 0">
+              <div *ngFor="let img of medicalImages" 
+                   class="study-list-item" 
+                   [class.active]="selectedImage?.id === img.id"
+                   (click)="selectImageForViewing(img)">
+                <span class="material-icons study-item-icon">
+                  {{ img.fileType === 'RX' ? 'analytics' : 'biotech' }}
+                </span>
+                <div class="study-item-details">
+                  <div class="study-item-name">{{ img.fileName }}</div>
+                  <div class="study-item-meta">{{ img.fileType }} - {{ img.uploadDate | date:'dd/MM/yyyy' }}</div>
+                </div>
+                <button class="btn-delete-study" (click)="$event.stopPropagation(); deleteImage(img.id!)">
+                  <span class="material-icons">delete</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Interactive Image Viewer -->
+        <div class="col-lg-7 mb-4">
+          <div class="glass-panel p-4 h-100 d-flex flex-column">
+            <h4 class="mb-3">Visor de Imágenes Interactivo</h4>
+            
+            <div class="viewer-container flex-grow-1 d-flex align-items-center justify-content-center" *ngIf="selectedImage">
+              <div class="image-wrapper" [style.transform]="'scale(' + imageZoom + ')'">
+                <img [src]="selectedImage.imageData" 
+                     alt="Estudio Dental" 
+                     class="viewer-img" 
+                     [style.filter]="'brightness(' + imageBrightness + '%) contrast(' + imageContrast + '%) invert(' + (imageInverted ? 1 : 0) + ')'" />
+              </div>
+            </div>
+
+            <div class="viewer-placeholder text-center py-5" *ngIf="!selectedImage">
+              <span class="material-icons viewer-placeholder-icon">visibility</span>
+              <p>Seleccione una radiografía o TAC de la galería para cargarla en el visor interactivo.</p>
+            </div>
+
+            <!-- Viewer Controls -->
+            <div class="viewer-controls mt-4" *ngIf="selectedImage">
+              <!-- Zoom and Negative -->
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="zoom-controls d-flex gap-2">
+                  <button class="btn btn-secondary btn-sm" (click)="adjustZoom(0.2)" title="Acercar">
+                    <span class="material-icons">zoom_in</span>
+                  </button>
+                  <button class="btn btn-secondary btn-sm" (click)="adjustZoom(-0.2)" title="Alejar">
+                    <span class="material-icons">zoom_out</span>
+                  </button>
+                  <span class="align-self-center text-sm ms-1">Zoom: {{ imageZoom | number:'1.1-1' }}x</span>
+                </div>
+                
+                <div class="negative-control">
+                  <button class="btn btn-secondary btn-sm d-flex align-items-center gap-1" 
+                          [class.btn-info]="imageInverted"
+                          (click)="imageInverted = !imageInverted">
+                    <span class="material-icons">difference</span> Invertir Colores (Negativo)
+                  </button>
+                </div>
+              </div>
+
+              <!-- Brightness & Contrast Sliders -->
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label text-sm">Brillo ({{ imageBrightness }}%)</label>
+                  <input type="range" class="form-range" min="50" max="200" [(ngModel)]="imageBrightness" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label text-sm">Contraste ({{ imageContrast }}%)</label>
+                  <input type="range" class="form-range" min="50" max="200" [(ngModel)]="imageContrast" />
+                </div>
+              </div>
+
+              <!-- Action button resets -->
+              <div class="d-flex justify-content-end">
+                <button class="btn btn-outline-light btn-sm" (click)="resetViewerAdjustments()">
+                  <span class="material-icons align-middle text-sm">restart_alt</span> Restablecer Ajustes
+                </button>
+              </div>
+
+              <div class="viewer-comments-box mt-3 p-3">
+                <strong>Comentarios del estudio:</strong>
+                <p class="mb-0 text-secondary">{{ selectedImage.comments || 'Sin comentarios.' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success image operation feedback -->
+    <div class="alert alert-success mt-3 animate-fade" *ngIf="imageSuccessMessage">
+      {{ imageSuccessMessage }}
+    </div>
   </div>
 
-  <div *ngIf="showConsultations" class="mt-4">
-    <h4>Consultas del Paciente {{ selectedPatient?.name }} {{ selectedPatient?.lastname }}</h4>
+  <!-- Medical History -->
+  <div *ngIf="showMedicalHistory && !showConsultations">
+    <h3 class="mb-4">Historial Médico del paciente: <span style="color: var(--accent);">{{ selectedPatient?.name }} {{ selectedPatient?.lastname }}</span></h3>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>PACIENTE</th>
+            <th>DESCRIPCIÓN</th>
+            <th>FECHA</th>
+            <th>HORA</th>
+            <th>PESO</th>
+            <th>ALTURA</th>
+            <th>GRUPO SANGUÍNEO</th>
+            <th>CONSULTAS</th>
+            <th>EDITAR</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let record of medicalHistory">
+            <td>{{ record?.patient?.name }}  {{ record?.patient?.lastname }}</td>
+            <td>
+              <div *ngIf="editingRecordDni !== record!.patient!.dni">{{ record!.description || 'Sin Descripción'}}</div>
+              <input *ngIf="editingRecordDni === record!.patient!.dni" 
+                     [(ngModel)]="editedMedicalRecord!.description"
+                     class="form-control">
+            </td>          
+            <td>{{ record?.date | date:'dd/MM/yyyy' }}</td>
+            <td>{{ record?.time | slice:0:5}} </td>
+            <td>
+              <div *ngIf="editingRecordDni !== record!.patient.dni">{{ record!.weight ? record!.weight + ' kg' : 'No especificado'}}</div>
+              <input *ngIf="editingRecordDni === record!.patient!.dni" 
+                     [(ngModel)]="editedMedicalRecord!.weight"
+                     class="form-control">
+            </td>
+            <td>
+              <div *ngIf="editingRecordDni !== record!.patient!.dni">{{ record!.height ? record!.height + ' m' : 'No especificado'}}</div>
+              <input *ngIf="editingRecordDni === record!.patient!.dni" 
+                     [(ngModel)]="editedMedicalRecord!.height"
+                     class="form-control">
+            </td>
+            <td>
+              <div *ngIf="editingRecordDni !== record!.patient!.dni">
+                <span class="status-badge" style="background: rgba(20, 184, 166, 0.15); color: var(--accent);">
+                  {{ record!.bloodGroup || 'N/A' }}
+                </span>
+              </div>
+              <input *ngIf="editingRecordDni === record!.patient!.dni" 
+                     [(ngModel)]="editedMedicalRecord!.bloodGroup"
+                     class="form-control">
+            </td>
+            <td>
+              <button class="btn-action btn-info-action" (click)="viewConsultationPatient(record.id!)" >
+                Ver más
+              </button>
+            </td>
+            <td>
+              <div *ngIf="editingRecordDni !== record?.patient!.dni">
+                <button class="btn-action btn-primary-action" (click)="modifyMedicalRecord(record!)">
+                  <span class="material-icons">edit</span>
+                </button>
+              </div>
+              
+              <div *ngIf="editingRecordDni === record?.patient!.dni" class="icons-update">
+                <button class="btn-action btn-success-action m-1" 
+                        (click)="saveMedicalRecordChanges()"
+                        [disabled]="!isMedicalRecordValid()">
+                  <span class="material-icons">save</span>
+                </button>
+                <button class="btn-action btn-secondary-action m-1" (click)="cancelMedicalRecordEdit()">
+                  <span class="material-icons">cancel</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <button class="btn-volver-admin" (click)="goBackPatient()">Volver</button>
+  </div>
+
+  <!-- Consultations Section -->
+  <div *ngIf="showConsultations" class="mt-4">
+    <h4 class="mb-4">Consultas del Paciente: <span style="color: var(--accent);">{{ selectedPatient?.name }} {{ selectedPatient?.lastname }}</span></h4>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
       <button class="btn btn-light" (click)="openAddConsultationModal()">
         <span class="material-icons">add</span> Nueva Consulta
       </button>
@@ -219,51 +458,48 @@
       </select>
     </div>
   
-    <div *ngIf="consultations.length === 0" class="alert alert-info">
-      No se encontraron consultas registradas
+    <div *ngIf="consultations.length === 0" class="alert-info mb-4">
+      No se encontraron consultas registradas.
     </div>
   
-    <table *ngIf="consultations.length > 0" class="table">
-      <thead class="table-dark">
-        <tr>
-          <th>FECHA</th>
-          <th>ESPECIALIDAD</th>
-          <th>DIAGNOSTICO</th>
-          <th>TRATAMIENTO</th>
-          <th>RAZON</th>
-          <th>DETALLE</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let consultation of consultations">
-          <td>{{ consultation.date | date:'dd/MM/yyyy' }}</td>
-          <td>{{ consultation.specialityName }}</td>
-          <td>{{ consultation.diagnosis || 'N/A' }}</td>
-          <td>{{ consultation.treatment || 'N/A' }}</td>
-          <td>{{ consultation.reason || 'Sin observaciones' }}</td>
-          <td>
-            <button class="btn btn-info btn-sm" (click)="openConsultationDetail(consultation)">
-              <span class="material-icons">visibility</span> Ver más
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div *ngIf="consultations.length > 0" class="table-responsive mb-4">
+      <table>
+        <thead>
+          <tr>
+            <th>FECHA</th>
+            <th>ESPECIALIDAD</th>
+            <th>DIAGNÓSTICO</th>
+            <th>TRATAMIENTO</th>
+            <th>RAZÓN</th>
+            <th>DETALLE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let consultation of consultations">
+            <td>{{ consultation.date | date:'dd/MM/yyyy' }}</td>
+            <td>{{ consultation.specialityName }}</td>
+            <td>{{ consultation.diagnosis || 'N/A' }}</td>
+            <td>{{ consultation.treatment || 'N/A' }}</td>
+            <td>{{ consultation.reason || 'Sin observaciones' }}</td>
+            <td>
+              <button class="btn-action btn-info-action" (click)="openConsultationDetail(consultation)">
+                <span class="material-icons">visibility</span> Ver más
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
     <div class="d-flex justify-content-start mt-3">
-      <button class="btn btn-secondary back-consultations-btn" (click)="showConsultations = false">
+      <button class="btn-action btn-secondary-action back-consultations-btn" (click)="showConsultations = false">
         Volver al Historial
       </button>
     </div>
   </div>
 
-  <ng-template #mensajeNoEncontrado>
-    <div class="invalid-feedback d-block m-4 text-center">
-      No se encontraron consultas con los filtros aplicados
-    </div>
-  </ng-template>
-
   <!-- Mensajes de error -->
-  <div *ngIf="errorMessage" class="alert alert-danger">
+  <div *ngIf="errorMessage" class="alert alert-danger mt-3">
     {{ errorMessage }}
   </div>
 </div>

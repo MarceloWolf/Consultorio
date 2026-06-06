@@ -45,7 +45,16 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userDetails) {
-        return buildToken(new HashMap<>(), userDetails);
+        Map<String, Object> extraClaims = new HashMap<>();
+        var authorities = userDetails.getAuthorities();
+        if (authorities != null && !authorities.isEmpty()) {
+            String authority = authorities.iterator().next().getAuthority();
+            if (authority.startsWith("ROLE_")) {
+                authority = authority.substring(5);
+            }
+            extraClaims.put("role", authority);
+        }
+        return buildToken(extraClaims, userDetails);
     }
 
     public String buildToken(Map<String, Object> extraClaims, UserDetails userDetails) {

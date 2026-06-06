@@ -12,11 +12,18 @@
           <!-- DNI -->
           <div class="col-md-6">
             <label class="form-label">DNI<span class="text-danger">*</span></label>
-            <input type="text" class="form-control" formControlName="dni" placeholder="Ej: 12345678">
-            <div *ngIf="addForm.get('dni')?.invalid && (addForm.get('dni')?.dirty || addForm.get('dni')?.touched)"
+            <input 
+              type="text" 
+              class="form-control" 
+              formControlName="dni" 
+              placeholder="Ej: 12345678 (7 u 8 dígitos)"
+              (blur)="checkDniDuplicate()"
+            >
+            <div *ngIf="addForm.get('dni')?.invalid && (submitted || addForm.get('dni')?.touched)"
                  class="text-danger">
               <small *ngIf="addForm.get('dni')?.hasError('required')">Campo requerido</small>
               <small *ngIf="addForm.get('dni')?.hasError('pattern')">Formato inválido (7-8 dígitos)</small>
+              <small *ngIf="addForm.get('dni')?.hasError('duplicated')">El DNI ingresado ya pertenece a un paciente registrado</small>
             </div>
           </div>
 
@@ -24,7 +31,7 @@
           <div class="col-md-6">
             <label class="form-label">Nombre<span class="text-danger">*</span></label>
             <input type="text" class="form-control" formControlName="name" placeholder="Ej: Juan">
-            <div *ngIf="addForm.get('name')?.invalid && (addForm.get('name')?.dirty || addForm.get('name')?.touched)"
+            <div *ngIf="addForm.get('name')?.invalid && (submitted || addForm.get('name')?.touched)"
                  class="text-danger">
               <small>Campo requerido</small>
             </div>
@@ -34,7 +41,7 @@
           <div class="col-md-6">
             <label class="form-label">Apellido<span class="text-danger">*</span></label>
             <input type="text" class="form-control" formControlName="lastname" placeholder="Ej: Pérez">
-            <div *ngIf="addForm.get('lastname')?.invalid && (addForm.get('lastname')?.dirty || addForm.get('lastname')?.touched)"
+            <div *ngIf="addForm.get('lastname')?.invalid && (submitted || addForm.get('lastname')?.touched)"
                  class="text-danger">
               <small>Campo requerido</small>
             </div>
@@ -44,7 +51,7 @@
           <div class="col-md-6">
             <label class="form-label">Email<span class="text-danger">*</span></label>
             <input type="email" class="form-control" formControlName="email" placeholder="Ej: juan@example.com">
-            <div *ngIf="addForm.get('email')?.invalid && (addForm.get('email')?.dirty || addForm.get('email')?.touched)"
+            <div *ngIf="addForm.get('email')?.invalid && (submitted || addForm.get('email')?.touched)"
                  class="text-danger">
               <small *ngIf="addForm.get('email')?.hasError('required')">Campo requerido</small>
               <small *ngIf="addForm.get('email')?.hasError('email')">Formato de email inválido</small>
@@ -55,7 +62,7 @@
           <div class="col-md-6">
             <label class="form-label">Teléfono<span class="text-danger">*</span></label>
             <input type="tel" class="form-control" formControlName="phoneNumber" placeholder="Ej: +541112345678">
-            <div *ngIf="addForm.get('phoneNumber')?.invalid && (addForm.get('phoneNumber')?.dirty || addForm.get('phoneNumber')?.touched)"
+            <div *ngIf="addForm.get('phoneNumber')?.invalid && (submitted || addForm.get('phoneNumber')?.touched)"
                  class="text-danger">
               <small>Campo requerido</small>
             </div>
@@ -65,7 +72,7 @@
           <div class="col-md-6">
             <label class="form-label">Fecha Nacimiento<span class="text-danger">*</span></label>
             <input type="date" class="form-control" formControlName="birthdate">
-            <div *ngIf="addForm.get('birthdate')?.invalid && (addForm.get('birthdate')?.dirty || addForm.get('birthdate')?.touched)"
+            <div *ngIf="addForm.get('birthdate')?.invalid && (submitted || addForm.get('birthdate')?.touched)"
                  class="text-danger">
               <small>Campo requerido</small>
             </div>
@@ -75,7 +82,7 @@
           <div class="col-12">
             <label class="form-label">Dirección<span class="text-danger">*</span></label>
             <input type="text" class="form-control" formControlName="address" placeholder="Ej: Calle Falsa 123">
-            <div *ngIf="addForm.get('address')?.invalid && (addForm.get('address')?.dirty || addForm.get('address')?.touched)"
+            <div *ngIf="addForm.get('address')?.invalid && (submitted || addForm.get('address')?.touched)"
                  class="text-danger">
               <small>Campo requerido</small>
             </div>
@@ -88,7 +95,7 @@
 
           <div class="modal-footer border-0">
             <button type="button" class="btn btn-secondary" (click)="close()">Cancelar</button>
-            <button type="submit" class="btn btn-primary" [disabled]="addForm.invalid">
+            <button type="submit" class="btn btn-primary">
               <span class="material-icons align-middle">save</span> Guardar
             </button>
           </div>

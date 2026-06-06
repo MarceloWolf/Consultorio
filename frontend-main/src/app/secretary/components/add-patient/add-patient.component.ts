@@ -22,11 +22,38 @@ export class AddPatientComponent {
     address: new FormControl('', Validators.required),
     birthdate: new FormControl('', Validators.required)
   });
+  
+  submitted = false;
   errorMessage: string | null = null;
 
   constructor(private _patientService: PatientService) {}
 
+  checkDniDuplicate(): void {
+    const dni = this.addForm.value.dni;
+    if (dni && dni.match(/^[0-9]{7,8}$/)) {
+      this._patientService.getPatientByDni(dni).subscribe({
+        next: (patient) => {
+          if (patient) {
+            this.addForm.get('dni')?.setErrors({ duplicated: true });
+          }
+        },
+        error: () => {
+          const errors = this.addForm.get('dni')?.errors;
+          if (errors) {
+            delete errors['duplicated'];
+            if (Object.keys(errors).length === 0) {
+              this.addForm.get('dni')?.setErrors(null);
+            } else {
+              this.addForm.get('dni')?.setErrors(errors);
+            }
+          }
+        }
+      });
+    }
+  }
+
   onSubmit(): void {
+    this.submitted = true;
     if (this.addForm.invalid) return;
 
     const patient: Patient = {
@@ -37,7 +64,7 @@ export class AddPatientComponent {
       phoneNumber: this.addForm.value.phoneNumber!,
       address: this.addForm.value.address!,
       birthdate: this.addForm.value.birthdate!,
-      active:true
+      active: true
     };
 
     this._patientService.createPatient(patient).subscribe({
@@ -59,7 +86,7 @@ export class AddPatientComponent {
   close(): void {
     this.closed.emit();
     this.addForm.reset();
+    this.submitted = false;
     this.errorMessage = null;
   }
-
 }

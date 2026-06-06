@@ -1,1 +1,16 @@
-<router-outlet></router-outlet>
+<div *ngIf="showLayout; else noLayout" class="app-layout animate-fade">
+  <app-header class="app-header-container"></app-header>
+  <div class="app-body-container">
+    <app-sidebar class="app-sidebar-container"></app-sidebar>
+    <main class="app-content-container">
+      <div class="glass-panel main-content-glass">
+        <router-outlet></router-outlet>
+      </div>
+      <app-footer></app-footer>
+    </main>
+  </div>
+</div>
+
+<ng-template #noLayout>
+  <router-outlet></router-outlet>
+</ng-template>

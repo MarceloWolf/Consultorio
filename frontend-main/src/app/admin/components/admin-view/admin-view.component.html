@@ -1,81 +1,74 @@
-<app-header></app-header>
 
 <div class="container">
   <div class="header">
     <div class="buttons">
-      <div class="input-group w-25" >
+      <!-- Search bar -->
+      <div class="input-group">
         <input
-          [formControl]="dniBuscado"
-          (keyup.enter)="findUser()"
+          (input)="onSearch($event)"
           type="text"
           class="form-control"
-          placeholder="Usuario Dni"
+          placeholder="Buscar por DNI, Nombre o Apellido..."
         />
-        <span (click)="findUser()" class="input-group-text">
+        <span class="input-group-text">
           <span class="material-icons">search</span>
         </span>
-        <div
-          class="invalid-feedback d-block"
-          *ngIf="submitted && (dniBuscado.invalid && dniBuscado.value)"
-        >
-          <span>El dni ingresado es invalido</span>
-        </div>
       </div>
 
-      <select (change)="findByType()" [(ngModel)]="selectedType" class="form-select form-select-sm w-25">
-        <option value="" disabled selected>Tipo Usuario</option>
+      <!-- Filter dropdowns -->
+      <select (change)="filterUsers()" [(ngModel)]="selectedType" class="form-select">
+        <option value="" disabled selected>Tipo de Usuario</option>
         <option value="TODOS">TODOS</option>
         <option value="ADMIN">ADMIN</option>
-        <option value="SECRETARY">SECRETARY</option>
-        <option value="PROFESSIONAL">PROFESSIONAL</option>
+        <option value="SECRETARY">Secretario/a</option>
+        <option value="PROFESSIONAL">Profesional</option>
       </select>
 
-      <select class="ml-1" (change)="findByState()" [disabled]="!selectedType || (selectedType === 'TODOS' || selectedType === 'ADMIN')" [(ngModel)]="selectedState" class="form-select form-select-sm w-25">
-        <option value="" disabled selected>Estado Cuenta</option>
+      <select (change)="filterUsers()" [disabled]="!selectedType || (selectedType === 'TODOS' || selectedType === 'ADMIN')" [(ngModel)]="selectedState" class="form-select">
+        <option value="" disabled selected>Estado de Cuenta</option>
         <option value="ACTIVE">ACTIVOS</option>
         <option value="INACTIVE">INACTIVOS</option>
       </select>
 
-    
+      <!-- Actions dropdown -->
       <div class="dropdown">
         <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
           Acciones
         </button>
         <ul class="dropdown-menu">
           <h5 class="dropdown-header">Agregar</h5>
-          <li><a class="dropdown-item" (click)="openDialogAddProfessional('200ms','200ms')">Usuario</a></li>
-          <li><a class="dropdown-item" (click)="openDialogAddSpeciality('200ms','200ms')">Especialidad</a></li>
-
+          <li><button type="button" class="dropdown-item" (click)="openDialogAddProfessional('200ms','200ms')">Usuario nuevo</button></li>
+          <li><button type="button" class="dropdown-item" (click)="openDialogAddSpeciality('200ms','200ms')">Especialidad</button></li>
           <li><hr class="dropdown-divider"></li>
-          <h5 class="dropdown-header">Otras acciones</h5>
-          <li><a class="dropdown-item" (click)="openDialogViewSpecialities('200ms','200ms')">Ver Especialidades</a></li>
+          <h5 class="dropdown-header">Consultar</h5>
+          <li><button type="button" class="dropdown-item" (click)="openDialogViewSpecialities('200ms','200ms')">Ver Especialidades</button></li>
         </ul>
       </div>
-      
     </div>
-    <div *ngIf="users && users.length > 0; else message">
-      <table class="table mt-3">
-        <thead class="table-dark">
+
+    <!-- Users table -->
+    <div *ngIf="filteredUsers && filteredUsers.length > 0; else message" class="table-responsive">
+      <table>
+        <thead>
           <tr>
             <th scope="col">DNI</th>
             <th scope="col">USERNAME</th>
             <th scope="col">NOMBRE</th>
             <th scope="col">APELLIDO</th>
             <th scope="col">EMAIL</th>
-            <th scope="col">TELEFONO</th>
-            <th scope="col">DIRECCION</th>
+            <th scope="col">TELÉFONO</th>
+            <th scope="col">DIRECCIÓN</th>
             <th scope="col">ROL</th>
             <th scope="col">ESTADO</th>
             <th scope="col">BAJA / ALTA</th>
-            <th scope="col">MODIFICAR</th>
-            <th scope="col">MODIFICAR CONTRASEÑA</th>
+            <th scope="col">ACCIONES</th>
+            <th scope="col">CONTRASEÑA</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let user of users; let i = index">
+          <tr *ngFor="let user of filteredUsers; let i = index">
             <td>
               <span>{{ user.dni }}</span>
-             <!--  <input *ngIf="isEditing[i]" type="text" [(ngModel)]="user.dni" class="form-control"> -->
             </td>
             <td>
               <span *ngIf="!isEditing[i]">{{ user.username }}</span>
@@ -102,50 +95,54 @@
               <input *ngIf="isEditing[i]" type="text" [(ngModel)]="user.address" class="form-control">
             </td>
             <td>
-              <span>{{ user.role }}</span>
+              <span class="status-badge" style="background: rgba(56, 189, 248, 0.1); color: #38bdf8;">{{ user.role }}</span>
             </td>
             <td>
-              <span>{{ user.accountState }}</span>
+              <span class="status-badge" [ngClass]="user.accountState === 'ACTIVE' ? 'status-active' : 'status-inactive'">
+                {{ user.accountState === 'ACTIVE' ? 'Activo' : 'Inactivo' }}
+              </span>
             </td>
             <td>
               <div class="icons-state">
-              <button [disabled]="user.role === 'ADMIN' || user.accountState === 'INACTIVE'" (click)="deleteUser(user.dni, user.role)" class="btn btn-danger m-2">
-                <span class="material-icons">arrow_downward</span>
-              </button>
-              <button [disabled]="user.role === 'ADMIN' || user.accountState === 'ACTIVE'" (click)="reactivateUser(user.dni)" class="btn btn-primary m-2">
-                <span class="material-icons">arrow_upward</span>
-              </button>
-             </div>
+                <button [disabled]="user.role === 'ADMIN' || user.accountState === 'INACTIVE'" (click)="deleteUser(user.dni, user.role)" class="btn-action btn-danger-action m-1">
+                  <span class="material-icons">arrow_downward</span>
+                </button>
+                <button [disabled]="user.role === 'ADMIN' || user.accountState === 'ACTIVE'" (click)="reactivateUser(user.dni)" class="btn-action btn-primary-action m-1">
+                  <span class="material-icons">arrow_upward</span>
+                </button>
+              </div>
             </td>
             <td>
-              <button *ngIf="!isEditing[i]" (click)="toggleEdit(i,user)" [disabled]="user.role === 'ADMIN'" class="btn btn-primary m-2">
+              <button *ngIf="!isEditing[i]" (click)="toggleEdit(i,user)" [disabled]="user.role === 'ADMIN'" class="btn-action btn-primary-action m-1">
                 <span class="material-icons">edit</span>
               </button>
-              <div class="icons-update">
-              <button *ngIf="isEditing[i]" (click)="toggleSave(i,user)" [disabled]="user.role === 'ADMIN'" class="btn btn-success m-2">
-                <span class="material-icons">save</span>
-              </button>
-              <button *ngIf="isEditing[i]" (click)="toggleCancel(i)" [disabled]="user.role === 'ADMIN'" class="btn btn-secondary m-2">
-                <span class="material-icons">cancel</span>
-              </button>
-             </div>
+              <div class="icons-update" *ngIf="isEditing[i]">
+                <button (click)="toggleSave(i,user)" [disabled]="user.role === 'ADMIN'" class="btn-action btn-success-action m-1">
+                  <span class="material-icons">save</span>
+                </button>
+                <button (click)="toggleCancel(i)" [disabled]="user.role === 'ADMIN'" class="btn-action btn-secondary-action m-1">
+                  <span class="material-icons">cancel</span>
+                </button>
+              </div>
             </td>
             <td class="text-center">
-              <button class="btn btn-primary" (click)="openDialog('200ms', '200ms', user.username)">Cambiar</button>
+              <button class="btn-action btn-primary-action" (click)="openDialog('200ms', '200ms', user.username)">Cambiar</button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
+
   <ng-template #message>
-    <div class="invalid-feedback d-block m-4">
-      No hay usuario/s que coincidan con la busqueda
+    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; border-radius: 12px; padding: 16px; text-align: center; margin-top: 20px;">
+      No hay usuarios que coincidan con la búsqueda.
     </div>
   </ng-template>
 
-  <div class="buttons">
-    <button class="btn btn-light" (click)="navigateToSecretary()">Funciones de secretaria</button>
-    <button class="btn btn-light" (click)="navigateToProfessional()">Funciones de profesional</button>
+  <!-- Bottom navigation -->
+  <div class="bottom-nav">
+    <button class="btn-nav" (click)="navigateToSecretary()">Funciones de Secretaria</button>
+    <button class="btn-nav" (click)="navigateToProfessional()">Funciones de Profesional</button>
   </div>
 </div>

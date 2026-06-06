@@ -25,7 +25,7 @@ public class AuthService {
 
 
     public AuthResponse register(UserDto request) {
-        var existingAdmin = userRepository.findAll().stream()
+        var existingAdmin = userRepository.findAllByRole(RoleEnum.ADMIN).stream()
                 .filter(u -> u instanceof Admin)
                 .map(u -> (Admin) u)
                 .findFirst();
@@ -53,7 +53,7 @@ public class AuthService {
 
     public AuthResponse authenticate(AuthLoginDto request) {
         authManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-        var existingAdmin = userRepository.findAll().stream()
+        var existingAdmin = userRepository.findAllByRole(RoleEnum.ADMIN).stream()
                 .filter(u -> u instanceof Admin)
                 .map(u -> (Admin) u)
                 .findFirst();

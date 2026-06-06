@@ -23,7 +23,7 @@ import com.prueba.consultorioMedico.model.Patient;
 @Slf4j
 @RestController
 @RequestMapping("/api/secretary")
-@PreAuthorize("hasAnyRole('ADMIN','SECRETARY')")
+@PreAuthorize("hasAnyRole('ADMIN','SECRETARY','PROFESSIONAL')")
 @CrossOrigin("*")
 public class SecretaryController {
 
@@ -67,6 +67,7 @@ public class SecretaryController {
     }
 
     @PostMapping("/addPatient")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETARY')")
     public ResponseEntity<Message> addPatient(@Valid @RequestBody Patient patient){
         patientService.add(patient);
         Message message = Message.builder().status(HttpStatus.OK).message("Paciente guardado correctamente").build();
@@ -74,6 +75,7 @@ public class SecretaryController {
     }
 
     @PutMapping("/updatePatient/{dni}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETARY')")
     public ResponseEntity<Message> updatePatient(@PathVariable String dni, @RequestBody PatientDto patient) {
         patientService.update(patient, dni);
         Message message = Message.builder().status(HttpStatus.OK).message("Paciente actualizado correctamente").build();
@@ -81,6 +83,7 @@ public class SecretaryController {
     }
 
     @PatchMapping("/updatePatientState/{dni}/{state}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETARY')")
     public ResponseEntity<Message> updatePatientState(@PathVariable String dni, @PathVariable Boolean state) {
         patientService.updateState(dni, state);
         Message message = Message.builder().status(HttpStatus.OK)
@@ -89,6 +92,7 @@ public class SecretaryController {
     }
 
     @PostMapping("/addMedicalAppointment")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETARY')")
     public ResponseEntity<Message> addMedicalAppointment(@RequestBody SimpleMedicalAppointmentDto sAppointmentDto) {
         medicalAppointmentService.add(sAppointmentDto);
         Message message = Message.builder().status(HttpStatus.OK).message("Cita medica generada correctamente").build();
@@ -134,6 +138,7 @@ public class SecretaryController {
     }
 
     @PatchMapping("/updateMedicalAppointmentState/{id}/{state}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETARY')")
     public ResponseEntity<Message> updateMedicalAppointmentState(@PathVariable Long id, @PathVariable String state) {
         medicalAppointmentService.updateAppointmentState(id, state);
         Message message = Message.builder().status(HttpStatus.OK).message("Cita medica actualizada correctamente")

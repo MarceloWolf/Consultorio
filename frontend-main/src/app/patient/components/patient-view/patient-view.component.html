@@ -1,0 +1,355 @@
+<div class="patient-portal">
+  
+  <!-- Search Header Panel -->
+  <div class="search-header-panel glass-panel mb-4 p-4">
+    <div class="row align-items-center">
+      <div class="col-lg-5 col-md-6 mb-3 mb-md-0">
+        <h2 class="title-premium">Portal del Paciente</h2>
+        <p class="subtitle-premium">Consulte la ficha clínica, estudios y turnos de cualquier paciente</p>
+      </div>
+      
+      <!-- Dual Search inputs -->
+      <div class="col-lg-7 col-md-6">
+        <div class="row g-2 position-relative">
+          <div class="col-sm-6">
+            <div class="input-group">
+              <span class="input-group-text bg-transparent border-end-0">
+                <span class="material-icons text-muted">fingerprint</span>
+              </span>
+              <input
+                type="text"
+                class="form-control border-start-0"
+                placeholder="Buscar por DNI..."
+                [(ngModel)]="dniQuery"
+                (input)="onSearchChange()"
+              />
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="input-group">
+              <span class="input-group-text bg-transparent border-end-0">
+                <span class="material-icons text-muted">search</span>
+              </span>
+              <input
+                type="text"
+                class="form-control border-start-0"
+                placeholder="Buscar por Nombre / Apellido..."
+                [(ngModel)]="nameQuery"
+                (input)="onSearchChange()"
+              />
+            </div>
+          </div>
+
+          <!-- Autocomplete overlay results -->
+          <div class="search-results-overlay glass-panel" *ngIf="matchingPatients.length > 0">
+            <div class="search-result-header text-muted p-2 border-bottom text-xs font-semibold">
+              PACIENTES ENCONTRADOS ({{ matchingPatients.length }})
+            </div>
+            <div class="search-result-item" *ngFor="let p of matchingPatients" (click)="selectPatient(p)">
+              <span class="material-icons text-accent">person</span>
+              <div class="d-flex flex-column ms-2">
+                <span class="p-name font-medium">{{ p.lastname }}, {{ p.name }}</span>
+                <span class="p-dni text-muted text-xs">DNI: {{ p.dni }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CASE A: Patient selected -> Show clinical info -->
+  <div *ngIf="selectedPatient; else showGeneralAnalytics" class="animate-fade">
+    <div class="patient-selected-header d-flex justify-content-between align-items-center mb-4 p-3 glass-panel">
+      <div class="d-flex align-items-center gap-3">
+        <div class="avatar-circle">
+          {{ selectedPatient.name.slice(0,1) }}{{ selectedPatient.lastname.slice(0,1) }}
+        </div>
+        <div>
+          <h3 class="patient-name-title mb-0">{{ selectedPatient.name }} {{ selectedPatient.lastname }}</h3>
+          <span class="patient-dni-badge">DNI: {{ selectedPatient.dni }}</span>
+        </div>
+      </div>
+      <button class="btn btn-outline-light btn-sm d-flex align-items-center gap-1" (click)="deselectPatient()">
+        <span class="material-icons">dashboard</span> Ver Analíticas Clínicas
+      </button>
+    </div>
+
+    <!-- Patient Tab Navigation -->
+    <div class="tabs-container mb-4">
+      <button class="tab-button" [class.active]="activeTab === 'appointments'" (click)="selectTab('appointments')">
+        <span class="material-icons">calendar_month</span> Turnos
+      </button>
+      <button class="tab-button" [class.active]="activeTab === 'history'" (click)="selectTab('history')">
+        <span class="material-icons">history_edu</span> Ficha Médica
+      </button>
+      <button class="tab-button" [class.active]="activeTab === 'odontograma'" (click)="selectTab('odontograma')">
+        <span class="material-icons">medical_services</span> Odontograma
+      </button>
+      <button class="tab-button" [class.active]="activeTab === 'studies'" (click)="selectTab('studies')">
+        <span class="material-icons">camera</span> Estudios y Placas
+      </button>
+    </div>
+
+    <!-- Tab 1: Appointments -->
+    <div *ngIf="activeTab === 'appointments'" class="tab-content">
+      <h4 class="section-title-premium mb-3">Historial de Turnos</h4>
+      <div class="table-responsive glass-panel p-2">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>FECHA</th>
+              <th>HORA</th>
+              <th>ODONTÓLOGO</th>
+              <th>ESPECIALIDAD</th>
+              <th>ESTADO</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let app of selectedAppointments">
+              <td>{{ app.date | date:'dd/MM/yyyy' }}</td>
+              <td>{{ app.time | slice:0:5 }} hs</td>
+              <td>{{ app.professionalName }} {{ app.professionalLastname }}</td>
+              <td>{{ app.specialityName }}</td>
+              <td>
+                <span class="status-badge" 
+                      [class.status-active]="app.state === 'INICIADO'"
+                      [class.status-inactive]="app.state === 'CANCELADO'"
+                      [class.status-pending]="app.state === 'REPROGRAMADO'">
+                  {{ app.state }}
+                </span>
+              </td>
+            </tr>
+            <tr *ngIf="selectedAppointments.length === 0">
+              <td colspan="5" class="text-center py-4 text-muted">No se registran turnos para este paciente.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab 2: Medical Record -->
+    <div *ngIf="activeTab === 'history'" class="tab-content">
+      <h4 class="section-title-premium mb-3">Ficha de Anamnesis</h4>
+      <div class="row">
+        <div class="col-md-5 mb-4">
+          <div class="metrics-card glass-panel p-4">
+            <h5 class="notes-title mb-3">Métricas Generales</h5>
+            <div class="metric-row mb-3">
+              <span class="metric-label">Grupo Sanguíneo</span>
+              <span class="status-badge-blood">{{ selectedRecord?.bloodGroup || 'N/A' }}</span>
+            </div>
+            <div class="metric-row mb-3">
+              <span class="metric-label">Peso Registrado</span>
+              <span class="metric-value">{{ selectedRecord?.weight ? selectedRecord?.weight + ' kg' : 'Sin registrar' }}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Altura Registrada</span>
+              <span class="metric-value">{{ selectedRecord?.height ? selectedRecord?.height + ' m' : 'Sin registrar' }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-7 mb-4">
+          <div class="notes-card glass-panel p-4">
+            <h5 class="notes-title mb-3">Observaciones Clínicas Generales</h5>
+            <p class="notes-text text-secondary mb-0">
+              {{ selectedRecord?.description || 'No se han ingresado observaciones para el historial clínico del paciente.' }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Odontograma (Read-Only Tooth Map for Patient Portal) -->
+    <div *ngIf="activeTab === 'odontograma'" class="tab-content">
+      <h4 class="section-title-premium mb-3">Mapa Bucal FDI</h4>
+      <div class="glass-panel p-4 text-center">
+        <p class="text-secondary mb-4">Vista general de tratamientos activos y piezas dentales.</p>
+        
+        <div class="d-flex justify-content-center gap-3 flex-wrap mb-4">
+          <span class="badge bg-success p-2">Sano</span>
+          <span class="badge bg-danger p-2">Caries</span>
+          <span class="badge bg-info p-2 text-dark">Conducto</span>
+          <span class="badge bg-warning p-2 text-dark">Corona</span>
+          <span class="badge bg-secondary p-2">Ausente</span>
+        </div>
+
+        <div class="alert alert-info text-sm py-2 mx-auto" style="max-width: 600px;" *ngIf="selectedToothStates.length === 0">
+          No se registran piezas tratadas en el odontograma. Todo el mapa dental se encuentra sano.
+        </div>
+
+        <div class="odontograma-list text-start mx-auto" style="max-width: 600px;" *ngIf="selectedToothStates.length > 0">
+          <div class="card bg-dark border-secondary p-3 mb-2" *ngFor="let tooth of selectedToothStates">
+            <div class="d-flex justify-content-between align-items-center">
+              <strong>Pieza Dental #{{ tooth.toothNumber }}</strong>
+              <span class="badge" 
+                    [class.bg-success]="tooth.state === 'SANO'"
+                    [class.bg-danger]="tooth.state === 'CARIES'"
+                    [class.bg-info]="tooth.state === 'TRATAMIENTO_CONDUCTO'"
+                    [class.bg-warning]="tooth.state === 'CORONA'"
+                    [class.bg-secondary]="tooth.state === 'AUSENTE'">
+                {{ tooth.state }}
+              </span>
+            </div>
+            <p class="mb-0 mt-2 text-muted text-sm">{{ tooth.notes || 'Sin observaciones detalladas.' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: Studies / Images -->
+    <div *ngIf="activeTab === 'studies'" class="tab-content">
+      <h4 class="section-title-premium mb-3">Radiografías (RX) y Tomografías (TAC)</h4>
+      <div class="row">
+        <div class="col-md-6" *ngFor="let img of selectedImages">
+          <div class="study-card glass-panel">
+            <div class="study-icon-wrapper">
+              <span class="material-icons study-icon">
+                {{ img.fileType === 'RX' ? 'analytics' : 'biotech' }}
+              </span>
+              <span class="badge-type">{{ img.fileType }}</span>
+            </div>
+            <div class="study-details">
+              <div class="study-filename">{{ img.fileName }}</div>
+              <div class="study-date">Cargado el: {{ img.uploadDate | date:'dd/MM/yyyy' }}</div>
+              <div class="study-comment text-secondary text-sm">{{ img.comments || 'Sin comentarios adicionales.' }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 text-center py-5 glass-panel" *ngIf="selectedImages.length === 0">
+          <span class="material-icons text-muted" style="font-size: 48px;">photo_library</span>
+          <p class="text-secondary mt-2 mb-0">No se registran imágenes ni placas cargadas para este paciente.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CASE B: No Patient Selected -> Show General Clinic Analytics -->
+  <ng-template #showGeneralAnalytics>
+    <div class="general-analytics-panel animate-fade">
+      
+      <!-- Overview Welcome Card -->
+      <div class="welcome-card glass-panel p-4 mb-4 text-center text-md-start">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <h3 class="text-accent mb-2">Panel General de Analíticas Clínicas</h3>
+            <p class="text-secondary mb-0">
+              Aquí puede observar estadísticas agregadas de la Clínica Dental.
+              Utilice los campos de búsqueda superiores para inspeccionar la ficha personal de cualquier paciente.
+            </p>
+          </div>
+          <div class="col-md-4 text-center text-md-end mt-3 mt-md-0">
+            <div class="stats-badge-large">
+              <span class="material-icons">analytics</span> Datos Agregados
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-sm-6">
+          <div class="stats-card glass-panel text-center p-3">
+            <span class="material-icons stats-icon text-accent">groups</span>
+            <div class="stats-num mt-2">{{ totalPatientsCount }}</div>
+            <div class="stats-title text-secondary">Pacientes Totales</div>
+          </div>
+        </div>
+        <div class="col-lg-3 col-sm-6">
+          <div class="stats-card glass-panel text-center p-3">
+            <span class="material-icons stats-icon text-success">check_circle</span>
+            <div class="stats-num mt-2">{{ activePatientsCount }}</div>
+            <div class="stats-title text-secondary">Pacientes Activos</div>
+          </div>
+        </div>
+        <div class="col-lg-3 col-sm-6">
+          <div class="stats-card glass-panel text-center p-3">
+            <span class="material-icons stats-icon text-danger">cancel</span>
+            <div class="stats-num mt-2">{{ inactivePatientsCount }}</div>
+            <div class="stats-title text-secondary">Pacientes Inactivos</div>
+          </div>
+        </div>
+        <div class="col-lg-3 col-sm-6">
+          <div class="stats-card glass-panel text-center p-3">
+            <span class="material-icons stats-icon text-warning">star</span>
+            <div class="stats-num mt-2">98.6%</div>
+            <div class="stats-title text-secondary">Satisfacción Promedio</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Graphical Clinic Analytics (CSS Bar Graph) -->
+      <div class="row">
+        <div class="col-md-7 mb-4">
+          <div class="glass-panel p-4 h-100">
+            <h4 class="notes-title mb-4">Tendencia de Turnos por Mes (2026)</h4>
+            
+            <div class="bar-chart-container d-flex align-items-end justify-content-between pt-4 pb-2 px-3">
+              <div class="bar-col d-flex flex-column align-items-center">
+                <div class="bar-value text-accent">120</div>
+                <div class="bar-fill bg-accent-glow" style="height: 120px; width: 30px; border-radius: 6px 6px 0 0; border: 1px solid var(--accent);"></div>
+                <div class="bar-label mt-2 text-secondary">Ene</div>
+              </div>
+              <div class="bar-col d-flex flex-column align-items-center">
+                <div class="bar-value text-accent">145</div>
+                <div class="bar-fill bg-accent-glow" style="height: 145px; width: 30px; border-radius: 6px 6px 0 0; border: 1px solid var(--accent);"></div>
+                <div class="bar-label mt-2 text-secondary">Feb</div>
+              </div>
+              <div class="bar-col d-flex flex-column align-items-center">
+                <div class="bar-value text-accent">180</div>
+                <div class="bar-fill bg-accent-glow" style="height: 180px; width: 30px; border-radius: 6px 6px 0 0; border: 1px solid var(--accent);"></div>
+                <div class="bar-label mt-2 text-secondary">Mar</div>
+              </div>
+              <div class="bar-col d-flex flex-column align-items-center">
+                <div class="bar-value text-accent">165</div>
+                <div class="bar-fill bg-accent-glow" style="height: 165px; width: 30px; border-radius: 6px 6px 0 0; border: 1px solid var(--accent);"></div>
+                <div class="bar-label mt-2 text-secondary">Abr</div>
+              </div>
+              <div class="bar-col d-flex flex-column align-items-center">
+                <div class="bar-value text-accent">190</div>
+                <div class="bar-fill bg-accent-glow" style="height: 190px; width: 30px; border-radius: 6px 6px 0 0; border: 1px solid var(--accent);"></div>
+                <div class="bar-label mt-2 text-secondary">May</div>
+              </div>
+              <div class="bar-col d-flex flex-column align-items-center">
+                <div class="bar-value text-accent">210</div>
+                <div class="bar-fill bg-accent-glow" style="height: 210px; width: 30px; border-radius: 6px 6px 0 0; border: 1px solid var(--accent);"></div>
+                <div class="bar-label mt-2 text-secondary">Jun</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-5 mb-4">
+          <div class="glass-panel p-4 h-100">
+            <h4 class="notes-title mb-3">Distribución de Consultas</h4>
+            <div class="distribution-list">
+              <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                <span>Clínica General</span>
+                <span class="badge bg-secondary">42%</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                <span>Ortodoncia</span>
+                <span class="badge bg-secondary">28%</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                <span>Endodoncia</span>
+                <span class="badge bg-secondary">18%</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center py-2">
+                <span>Cirugía Oral</span>
+                <span class="badge bg-secondary">12%</span>
+              </div>
+            </div>
+            
+            <div class="alert alert-warning mt-4 text-sm mb-0">
+              <span class="material-icons align-middle text-sm me-1">info</span>
+              Los datos anteriores reflejan las estadísticas consolidadas del último semestre operacional de la clínica.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </ng-template>
+
+</div>

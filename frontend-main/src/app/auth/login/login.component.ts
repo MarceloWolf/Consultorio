@@ -43,29 +43,24 @@ export class LoginComponent implements OnInit {
 
         this._authService.login(username, password).subscribe({
             next: () => {
-                this.userService.getUserByUsername(username).subscribe({
-                    next: (user) => {
-                        this.user = user; 
-
-                        switch (this.user?.role) {
-                            case 'ADMIN':
-                                this.router.navigate(['/admin']);
-                                break;
-                            case 'SECRETARY':
-                                this.router.navigate(['/secretary']);
-                                break;
-                            case 'PROFESSIONAL':
-                                this.router.navigate(['/professional']); 
-                                break;
-                            default:
-                                alert('Rol no reconocido');
-                        }
-                    },
-                    error: (err) => {
-                        console.error('Error al obtener datos de usuario:', err);
-                        alert('Error al cargar datos del usuario');
+                const tokenInfo = this._authService.getInfoToken();
+                if (tokenInfo && tokenInfo.role) {
+                    switch (tokenInfo.role) {
+                        case 'ADMIN':
+                            this.router.navigate(['/admin']);
+                            break;
+                        case 'SECRETARY':
+                            this.router.navigate(['/secretary']);
+                            break;
+                        case 'PROFESSIONAL':
+                            this.router.navigate(['/professional']); 
+                            break;
+                        default:
+                            alert('Rol no reconocido: ' + tokenInfo.role);
                     }
-                });
+                } else {
+                    alert('Error: No se pudo obtener el rol del token');
+                }
             },
             error: (err) => {
                 const errMsg = err?.error?.message || 'Usuario o contraseña incorrectos';

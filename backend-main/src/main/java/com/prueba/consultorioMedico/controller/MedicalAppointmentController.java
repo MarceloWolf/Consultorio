@@ -21,7 +21,7 @@ import java.util.List;
 @RequestMapping("/api/appointment")
 // Recomendable poner la url del cliente frontend
 @CrossOrigin("*")
-@PreAuthorize("hasAnyRole('ADMIN','SECRETARY')")
+@PreAuthorize("hasAnyRole('ADMIN','SECRETARY','PROFESSIONAL')")
 @RequiredArgsConstructor
 public class MedicalAppointmentController {
     private final IMedicalAppointmentService medicalAppointmentService;
@@ -84,6 +84,7 @@ public class MedicalAppointmentController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETARY')")
     public ResponseEntity<Message> addAppointment(
             @RequestBody SimpleMedicalAppointmentDto simpleMedicalAppointmentDto) {
         medicalAppointmentService.add(simpleMedicalAppointmentDto);
@@ -92,6 +93,7 @@ public class MedicalAppointmentController {
     }
 
     @DeleteMapping("/delete/{medicalAppointmentId}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETARY')")
     public ResponseEntity<Message> deleteAppointment(@PathVariable Long medicalAppointmentId) {
         medicalAppointmentService.deleteAppointment(medicalAppointmentId);
         Message message = Message.builder().status(HttpStatus.OK).message("Cita eliminada correctamente").build();
@@ -99,6 +101,7 @@ public class MedicalAppointmentController {
     }
 
     @PutMapping("/rescheduleMedicalAppointment/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETARY')")
     public ResponseEntity<Message> updateMedicalAppointmentState(@PathVariable Long id,
             @RequestBody MedicalAppointmentDataAllowedToUpdateDto mAllowedToUpdateDto) {
         medicalAppointmentService.reschedule(id, mAllowedToUpdateDto);
@@ -108,6 +111,7 @@ public class MedicalAppointmentController {
     }
 
     @PatchMapping("/cancelAppointment/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETARY')")
     public ResponseEntity<Message> cancelAppointment(@PathVariable Long id) {
         medicalAppointmentService.cancel(id);
         Message message = Message.builder().status(HttpStatus.OK).message("Cita cancelada correctamente")

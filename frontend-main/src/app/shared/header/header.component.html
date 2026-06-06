@@ -1,13 +1,24 @@
 <div class="container">
-  <img src="assets\logo-medicus-azul.png" alt="" />
-  <div class="user-text">
+  <div class="logo-wrapper">
+    <img src="assets/logo-medicus-vector.svg" alt="Dr. Pablo Wolf Logo" />
+  </div>
+  <div class="user-text d-flex align-items-center gap-3">
+    <!-- Theme Toggle -->
+    <button class="btn-theme-toggle" (click)="toggleTheme()" [title]="themeService.isDark() ? 'Modo Claro' : 'Modo Oscuro'">
+      <span class="material-icons" *ngIf="themeService.isDark()">light_mode</span>
+      <span class="material-icons" *ngIf="!themeService.isDark()">dark_mode</span>
+    </button>
+
     <div class="dropdown">
         <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             {{ loggedInUser }}
         </button>
-        <ul class="dropdown-menu">
-          <li class="d-flex justify-content-center"><button class="btn btn-light boton-salir" (click)="logOut()">Salir</button></li>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li class="d-flex justify-content-center">
+            <button class="btn btn-light boton-salir" (click)="logOut()">Salir</button>
+          </li>
         </ul>
       </div>
   </div>
 </div>
+

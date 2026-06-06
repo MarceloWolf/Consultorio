@@ -43,7 +43,7 @@ public class UserController {
     }
 
     @GetMapping("/{userRole}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY')")
     public ResponseEntity<List<UserDto>> getUsersByRole(@PathVariable String userRole) {
         RoleEnum role = RoleEnum.valueOf(userRole);
         return ResponseEntity.ok(userService.findAllUsersByRole(role));

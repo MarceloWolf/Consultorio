@@ -23,11 +23,9 @@ import { ViewSpecialitiesDialogComponent } from '../../pop-up/view-specialities-
   styleUrls: ['./admin-view.component.css'],
 })
 export class AdminViewComponent implements OnInit {
-  users: User[] = [];
-  dniBuscado = new FormControl('', [
-    Validators.pattern('\\d{7,8}'),
-    Validators.required,
-  ]);
+  allUsers: User[] = [];
+  filteredUsers: User[] = [];
+  searchQuery: string = '';
   submitted: boolean = false;
   selectedUser: string | null = null;
   selectedType: string = '';
@@ -47,11 +45,12 @@ export class AdminViewComponent implements OnInit {
 
   ngOnInit(): void {
     this.userService.getUsers().subscribe((data: User[]) => {
-      this.users = data;
+      this.allUsers = data;
+      this.filterUsers();
+      this.isEditing = new Array(this.allUsers.length).fill(false);
     });
     this.selectedUser = null;
     this.selectedType = '';
-    this.isEditing = new Array(this.users.length).fill(false);
   }
 
   openDialog(
@@ -207,59 +206,37 @@ export class AdminViewComponent implements OnInit {
     })
   }
 
-  //Hay que corregir el tema de los espacio en blanco al cargar el dni
-  findUser() {
-    this.submitted = true;
-
-    let dni = this.dniBuscado.value;
-
-    if ((dni!.length <= 7 || dni!.length >= 8) && this.dniBuscado.invalid) {
-      this.ngOnInit();
-      return;
-    }
-
-    this.userService.getUserByDni(dni!.trim()).subscribe({
-      next: (data: User) => {
-        this.users = [data];
-      },
-      error: () => {
-        this.users = [];
-      },
-    });
+  onSearch(event: any) {
+    this.searchQuery = event.target.value;
+    this.filterUsers();
   }
 
-  findByType() {
-    if (this.selectedType === 'TODOS') {
-      this.selectedState = '';
-      this.ngOnInit();
-      return;
-    }
-    this.userService
-      .getUsersByRole(this.selectedType)
-      .subscribe((data: User[]) => {
-        this.users = data;
-        this.selectedState = 'ACTIVE';
-        this.findByState();
-      });
-    this.selectedUser = null;
-  }
+  filterUsers() {
+    let temp = [...this.allUsers];
 
-  findByState() {
-    if (this.selectedType === 'PROFESSIONAL') {
-      this.userService
-        .getProfessionalsByState(this.selectedState)
-        .subscribe((data: User[]) => {
-          this.users = data;
-        });
-    } else if (this.selectedType === 'SECRETARY') {
-      this.userService
-        .getSecretaryByState(this.selectedState)
-        .subscribe((data: User[]) => {
-          this.users = data;
-        });
+    // Search query filter (DNI, Name, Lastname, username, email)
+    if (this.searchQuery && this.searchQuery.trim() !== '') {
+      const q = this.searchQuery.toLowerCase().trim();
+      temp = temp.filter(u => 
+        (u.dni && u.dni.toLowerCase().includes(q)) ||
+        (u.name && u.name.toLowerCase().includes(q)) ||
+        (u.lastname && u.lastname.toLowerCase().includes(q)) ||
+        (u.username && u.username.toLowerCase().includes(q)) ||
+        (u.email && u.email.toLowerCase().includes(q))
+      );
     }
-    this.selectedUser = null;
-    return;
+
+    // Role type filter
+    if (this.selectedType && this.selectedType !== 'TODOS') {
+      temp = temp.filter(u => u.role === this.selectedType);
+    }
+
+    // Account state filter
+    if (this.selectedState && this.selectedState !== '' && this.selectedType && this.selectedType !== 'TODOS' && this.selectedType !== 'ADMIN') {
+      temp = temp.filter(u => u.accountState === this.selectedState);
+    }
+
+    this.filteredUsers = temp;
   }
 
   toggleEdit(index: number, user: User) {
@@ -314,7 +291,7 @@ export class AdminViewComponent implements OnInit {
 
   toggleCancel(index: number) {
     if (this.originalUser[index]) {
-      this.users[index] = { ...this.originalUser[index] };
+      this.filteredUsers[index] = { ...this.originalUser[index] };
       delete this.originalUser[index];
     }
     this.isEditing[index] = false;

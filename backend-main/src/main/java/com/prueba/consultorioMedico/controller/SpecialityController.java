@@ -17,7 +17,7 @@ import java.util.List;
 @RequestMapping("/api/speciality")
 //Recomendable poner la url del cliente frontend
 @CrossOrigin("*")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN','SECRETARY','PROFESSIONAL')")
 @RequiredArgsConstructor
 public class SpecialityController {
     @Autowired
@@ -34,6 +34,7 @@ public class SpecialityController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Message> addProfessional(@RequestBody SpecialityDto specialityDto){
         Speciality speciality = Speciality.builder().name(specialityDto.getName()).build();
         specialityService.add(speciality);
@@ -42,6 +43,7 @@ public class SpecialityController {
     }
 
     @DeleteMapping("/deleteSpeciality/{specialityName}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Message> deleteSpeciality(@PathVariable String specialityName ){
         specialityService.deleteSpeciality(specialityName);
         Message message = Message.builder().status(HttpStatus.OK).message("Especialidad eliminada correctamente").build();

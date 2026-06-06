@@ -31,6 +31,7 @@ import { VerifyDialogComponent } from 'src/app/shared/verify-dialog/verify-dialo
 export class SecretaryViewComponent implements OnInit {
   pacients: Patient[] = [];
   filetredPatients: Patient[] = [];
+  filteredAppointmentsList: FullMedicalAppointment[] = [];
   isLoading: boolean = true;
   errorMessage: string | null = null;
   editingDni: string | null = null;
@@ -39,7 +40,6 @@ export class SecretaryViewComponent implements OnInit {
   showMedicalHistory = false;
   medicalHistory: MedicalRecord[] = [];
   selectedPatient: Patient | null = null;
-  private lastAppliedState: string = 'TODOS';
   showAddModal = false;
   showAppointments: boolean = false;
   selectedPatientForAppointments?: Patient;
@@ -64,12 +64,9 @@ export class SecretaryViewComponent implements OnInit {
   showAllAppointments: boolean = false;
   lastname?: string;
 
-
-  filtrosForm = new FormGroup({
-    dniBusqueda: new FormControl('', [Validators.pattern('^[0-9]{7,8}$')]),
-    lastnameSearch: new FormControl(''),
-    filtroEstado: new FormControl('TODOS')
-  });
+  patientSearchQuery: string = '';
+  selectedPatientState: string = 'ACTIVO';
+  appointmentSearchQuery: string = '';
 
   constructor(private _patientService: PatientService,
     private _specialityService: SpecialityService,
@@ -82,9 +79,8 @@ export class SecretaryViewComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.filtrosForm.get('filtroEstado')?.setValue('ACTIVO');
+    this.selectedPatientState = 'ACTIVO';
     this.loadPatients();
-    this.setupFiltros();
     this.loadSpecialities();
     this.validateButtons();
     this.validateAccount();
@@ -124,7 +120,7 @@ export class SecretaryViewComponent implements OnInit {
       this.sortDirection = 'asc';
     }
 
-    this.medicalAppoinmentList.sort((a, b) => {
+    this.filteredAppointmentsList.sort((a, b) => {
       const valueA: any = a[column];
       const valueB: any = b[column];
 
@@ -178,11 +174,10 @@ export class SecretaryViewComponent implements OnInit {
       }
     }
    
-  
-    console.log(this.selectedDate);
     this._medicalAppService.getAppointmentByFilters(params).subscribe(
       appointments => {
         this.medicalAppoinmentList = appointments;
+        this.filterAppointments();
       },
       error => {
         console.error("Error cargando turnos disponibles:", error);
@@ -298,17 +293,20 @@ export class SecretaryViewComponent implements OnInit {
     });
   }
   onStateFilterChange(): void {
-    if (this.selectedPatient && this.selectedState) {
-      this._medicalAppService.getMedicalAppointmentsByState(this.selectedState).subscribe({
-        next: (appointments: FullMedicalAppointment[]) => {
-          this.medicalAppoinmentList = appointments.filter(app => app.patientDni === this.selectedPatient!.dni);
-        },
-        error: (err) => this.handleError('Error cargando turnos', err)
-      });
-    }
-    if(this.selectedState === null)
-    {
-      this.loadMedicalAppointments(this.selectedPatient!.dni);
+    if (this.selectedPatient) {
+      if (this.selectedState) {
+        this._medicalAppService.getMedicalAppointmentsByState(this.selectedState).subscribe({
+          next: (appointments: FullMedicalAppointment[]) => {
+            this.medicalAppoinmentList = appointments.filter(app => app.patientDni === this.selectedPatient!.dni);
+            this.filterAppointments();
+          },
+          error: (err) => this.handleError('Error cargando turnos', err)
+        });
+      } else {
+        this.loadMedicalAppointments(this.selectedPatient.dni);
+      }
+    } else {
+      this.filterAppointments();
     }
   }
 
@@ -354,75 +352,42 @@ export class SecretaryViewComponent implements OnInit {
 
 
 
-  private setupFiltros(): void {
-    this.filtrosForm.valueChanges.subscribe(() => {
-      this.applyfilters();
-    });
+  onPatientSearch(event: any) {
+    this.patientSearchQuery = event.target.value;
+    this.filterPatients();
   }
 
   loadPatients(): void {
     this._patientService.getPatients().subscribe({
       next: (data: Patient[]) => {
         this.pacients = data;
-        this.applyfilters();
+        this.filterPatients();
       },
       error: (err) => this.handleError('Error cargando pacientes', err)
     });
   }
 
-  findPatient(): void {
-    const dniBusqueda = this.filtrosForm.get('dniBusqueda')?.value ?? '';
-    if (!dniBusqueda || this.filtrosForm.get('dniBusqueda')?.invalid) {
-      return;
-    }
-    this._patientService.getPatientByDni(dniBusqueda).subscribe({
-      next: (paciente: Patient) => {
-        this.filetredPatients = [paciente];
-      },
-      error: (err) => {
-        this.handleError('Error buscando paciente por DNI', err);
-      }
-    });
-  }
+  filterPatients(): void {
+    let temp = [...this.pacients];
 
-  applyfilters(): void {
-    const currentEstado = this.filtrosForm.get('filtroEstado')?.value ?? "TODOS";
-
-    if (currentEstado !== this.lastAppliedState) {
-      this.lastAppliedState = currentEstado;
-      this.fetchPatientsByState(currentEstado);
-    } else {
-      this.applyDniFilter();
+    // Filter by DNI, Name, or Lastname
+    if (this.patientSearchQuery && this.patientSearchQuery.trim() !== '') {
+      const q = this.patientSearchQuery.toLowerCase().trim();
+      temp = temp.filter(p => 
+        (p.dni && p.dni.toLowerCase().includes(q)) ||
+        (p.name && p.name.toLowerCase().includes(q)) ||
+        (p.lastname && p.lastname.toLowerCase().includes(q))
+      );
     }
-  }
-  private fetchPatientsByState(state: string): void {
-    this.isLoading = true;
-    let observable: Observable<Patient[]>;
-    if (state === 'TODOS') {
-      observable = this._patientService.getPatients();
-    } else if (state === 'ACTIVO') {
-      observable = this._patientService.getPatientsByState(true);
-    } else {
-      observable = this._patientService.getPatientsByState(false);
-    }
-    observable.subscribe({
-      next: (data: Patient[]) => {
-        this.pacients = data;
-        this.applyDniFilter();
-        this.isLoading = false;
-      },
-      error: (err) => {
-        this.handleError('Error cargando pacientes', err);
-        this.isLoading = false;
-      }
-    });
-  }
 
-  private applyDniFilter(): void {
-    const dniBusqueda = this.filtrosForm.get('dniBusqueda')?.value;
-    this.filetredPatients = this.pacients.filter(pacient =>
-      dniBusqueda ? pacient.dni.includes(dniBusqueda) : true
-    );
+    // Filter by Active status
+    if (this.selectedPatientState === 'ACTIVO') {
+      temp = temp.filter(p => p.active === true);
+    } else if (this.selectedPatientState === 'INACTIVO') {
+      temp = temp.filter(p => p.active === false);
+    }
+
+    this.filetredPatients = temp;
   }
 
   historialDetail(dni: string): void {
@@ -502,25 +467,27 @@ export class SecretaryViewComponent implements OnInit {
       this._patientService.getMedicalAppointmentsByPatientAndSpeciality(this.selectedSpeciality, dni)
         .subscribe({
           next: (data) => {
-            console.log(data);
-            this.medicalAppoinmentList = data
-          }
-          ,
+            this.medicalAppoinmentList = data;
+            this.filterAppointments();
+          },
           error: (err) => this.handleError('Error cargando turnos', err)
         });
     } else {
       this._patientService.getMedicalAppointmentsByPatient(dni).subscribe({
-        next: (data) => this.medicalAppoinmentList = data,
+        next: (data) => {
+          this.medicalAppoinmentList = data;
+          this.filterAppointments();
+        },
         error: (err) => this.handleError('Error cargando turnos', err)
       });
     }
   }
+
   onSpecialityFilterChange(): void {
     if (this.selectedPatient) {
       this.loadMedicalAppointments(this.selectedPatient.dni);
     }
   }
-
 
   medicalAppoinmentDetail(patient: Patient) {
     this.selectedPatient = patient;
@@ -533,11 +500,12 @@ export class SecretaryViewComponent implements OnInit {
       this.showAddAppointmentModal = true;
     }
   }
+
   createMedicalAppointment(appointmentData: any): void {
     const newAppointment: MedicalAppointment = {
       ...appointmentData,
       patientDNI: this.selectedPatient?.dni!,
-      estado: 'PENDIENTE' // Estado por defecto
+      estado: 'PENDIENTE'
     };
 
     this._patientService.createMedicalAppointment(newAppointment).subscribe({
@@ -557,19 +525,16 @@ export class SecretaryViewComponent implements OnInit {
 
   saveChanges(): void {
     if (this.editingDni && this.editedPatient) {
-
-
       const pacienteActualizado: Patient = {
         ...this.editedPatient
       };
 
       this._patientService.updatePatient(this.editingDni, pacienteActualizado).subscribe({
         next: (updatedPatient) => {
-          // Actualizar la vista sin modificar el formato
           const index = this.pacients.findIndex(p => p.dni === this.editingDni);
           if (index !== -1) {
             this.pacients[index] = { ...updatedPatient };
-            this.applyfilters();
+            this.filterPatients();
           }
           this.salirModoEdicion();
           this.showSuccess('Paciente actualizado correctamente');
@@ -597,29 +562,32 @@ export class SecretaryViewComponent implements OnInit {
     this.editedPatient = null;
   }
 
-  public findPatientByLastName(): void {
-    const lastname = this.filtrosForm.get('lastnameSearch')?.value ?? '';
-    console.log(lastname);
-  
-    if (!lastname) {
-      console.log("No funciona");
-      
-      return;
-    }
-    this._patientService.getPatientByLastname(lastname).subscribe({
-      next: (paciente: Patient) => {
-        console.log(paciente);
-        
-        this.filetredPatients = [paciente];
-      },
-      error: (err) => {
-        this.handleError('Error buscando paciente por apellido', err);
-      }
-    });
+  onAppointmentSearch(event: any) {
+    this.appointmentSearchQuery = event.target.value;
+    this.filterAppointments();
   }
-  
 
+  filterAppointments(): void {
+    let temp = [...this.medicalAppoinmentList];
 
+    if (this.appointmentSearchQuery && this.appointmentSearchQuery.trim() !== '') {
+      const q = this.appointmentSearchQuery.toLowerCase().trim();
+      temp = temp.filter(app => 
+        (app.patientName && app.patientName.toLowerCase().includes(q)) ||
+        (app.patientLastname && app.patientLastname.toLowerCase().includes(q)) ||
+        (app.patientDni && app.patientDni.toLowerCase().includes(q)) ||
+        (app.professionalName && app.professionalName.toLowerCase().includes(q)) ||
+        (app.professionalLastname && app.professionalLastname.toLowerCase().includes(q)) ||
+        (app.specialityName && app.specialityName.toLowerCase().includes(q))
+      );
+    }
+
+    if (this.selectedState) {
+      temp = temp.filter(app => app.state === this.selectedState);
+    }
+
+    this.filteredAppointmentsList = temp;
+  }
 
   public viewAllAppointments(): void {
     this.showAllAppointments = true;
@@ -627,8 +595,7 @@ export class SecretaryViewComponent implements OnInit {
     this._medicalAppService.getAllMedicalAppointments().subscribe({
       next: (appointments) => {
         this.medicalAppoinmentList = appointments;
-        console.log(this.showAllAppointments);
-        
+        this.filterAppointments();
       },
       error: (err) => {
         this.handleError('Error cargando todos los turnos', err);

@@ -2,19 +2,23 @@ package com.prueba.consultorioMedico.service.consultation;
 
 import com.prueba.consultorioMedico.dto.ConsultationDto;
 import com.prueba.consultorioMedico.exception.PatientAlreadyHasAppointmentException;
+import com.prueba.consultorioMedico.model.AuditLog;
 import com.prueba.consultorioMedico.model.Consultation;
 import com.prueba.consultorioMedico.model.Patient;
 import com.prueba.consultorioMedico.model.Professional;
+import com.prueba.consultorioMedico.repository.AuditLogRepository;
 import com.prueba.consultorioMedico.repository.IConsultationRepository;
 import com.prueba.consultorioMedico.service.patient.PatientService;
 import com.prueba.consultorioMedico.service.professional.IProfessionalService;
 import com.prueba.consultorioMedico.service.speciality.ISpecialityService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +32,7 @@ public class ConsultationService implements IConsultationService {
     private final IProfessionalService professionalService;
     private final ISpecialityService specialityService;
     private final PatientService patientService;
+    private final AuditLogRepository auditLogRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -47,10 +52,23 @@ public class ConsultationService implements IConsultationService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public List<ConsultationDto> findConsultationsByMedicalRecordId(Long medicalRecordId) {
-        return consultationRepository.findByMedicalRecordId(medicalRecordId)
-                .stream()
+        List<Consultation> consultations = consultationRepository.findByMedicalRecordId(medicalRecordId);
+        
+        if (!consultations.isEmpty()) {
+            String patientDni = consultations.get(0).getMedicalRecord().getPatient().getDni();
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            auditLogRepository.save(AuditLog.builder()
+                    .username(username)
+                    .patientDni(patientDni)
+                    .action("VIEW_CONSULTATIONS")
+                    .timestamp(LocalDateTime.now())
+                    .details("Viewed consultations list for patient DNI: " + patientDni)
+                    .build());
+        }
+
+        return consultations.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
@@ -90,13 +108,21 @@ public class ConsultationService implements IConsultationService {
             consultation.setProfessional(professional);
             consultation.setMedicalRecord(patient.getMedicalRecord());
             Consultation savedConsultation = consultationRepository.save(consultation);
+
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            auditLogRepository.save(AuditLog.builder()
+                    .username(username)
+                    .patientDni(patientDNI)
+                    .action("CREATE_CONSULTATION")
+                    .timestamp(LocalDateTime.now())
+                    .details("Created consultation with professional: " + professional.getName() + " " + professional.getLastname())
+                    .build());
+
             return toDto(savedConsultation);
         
         }else{
             throw new NoSuchElementException("La especialidad ingresada no coincide con alguna de las especialidades del profesional");
         }
-        
-
     }
 
     @Override
@@ -110,6 +136,17 @@ public class ConsultationService implements IConsultationService {
         existingConsultation.setTreatment(consultationDto.getTreatment());
 
         Consultation updatedConsultation = consultationRepository.save(existingConsultation);
+
+        String patientDni = existingConsultation.getMedicalRecord().getPatient().getDni();
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        auditLogRepository.save(AuditLog.builder()
+                .username(username)
+                .patientDni(patientDni)
+                .action("UPDATE_CONSULTATION")
+                .timestamp(LocalDateTime.now())
+                .details("Updated consultation details")
+                .build());
+
         return toDto(updatedConsultation);
     }
 
@@ -118,7 +155,19 @@ public class ConsultationService implements IConsultationService {
     public void deleteConsultation(Long id) {
         Consultation consultation = consultationRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Consultation not found"));
+        
+        String patientDni = consultation.getMedicalRecord().getPatient().getDni();
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        
         consultationRepository.delete(consultation);
+
+        auditLogRepository.save(AuditLog.builder()
+                .username(username)
+                .patientDni(patientDni)
+                .action("DELETE_CONSULTATION")
+                .timestamp(LocalDateTime.now())
+                .details("Deleted consultation ID: " + id)
+                .build());
     }
 
     private ConsultationDto toDto(Consultation consultation) {

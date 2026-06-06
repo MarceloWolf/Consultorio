@@ -1,0 +1,37 @@
+<div class="sidebar" [class.collapsed]="isCollapsed">
+  <div class="brand-section">
+    <div class="logo-circle">
+      <span class="material-icons">diversity_1</span>
+    </div>
+    <span class="brand-name" *ngIf="!isCollapsed">Clínica Wolf</span>
+  </div>
+
+  <button class="toggle-btn" (click)="toggleSidebar()">
+    <span class="material-icons">
+      {{ isCollapsed ? 'chevron_right' : 'chevron_left' }}
+    </span>
+  </button>
+
+  <nav class="nav-links">
+    <div *ngFor="let item of navItems">
+      <a *ngIf="isAllowed(item)" 
+         (click)="navigate(item.route)" 
+         class="nav-item" 
+         [class.active]="isActive(item.route)"
+         [title]="item.label">
+        <span class="material-icons">{{ item.icon }}</span>
+        <span class="label" *ngIf="!isCollapsed">{{ item.label }}</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="user-profile-section" *ngIf="userRole">
+    <div class="avatar">
+      {{ loggedInUser.slice(0, 2).toUpperCase() }}
+    </div>
+    <div class="user-info" *ngIf="!isCollapsed">
+      <div class="name">{{ loggedInUser }}</div>
+      <div class="role">{{ translateRole(userRole) }}</div>
+    </div>
+  </div>
+</div>
